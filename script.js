@@ -7,10 +7,10 @@ const container = document.getElementById('container');
 const width = container.clientWidth;
 const height = container.clientHeight;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-renderer.setSize(width, height); 
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(width, height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor(0x03030a, 1);
+renderer.setClearColor(0x03030a, 0);
 container.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
@@ -36,11 +36,10 @@ const params = {
   arms: 5,
   particles: 6000,
   radius: 300,
-  spin: 1.8,
-  randomness: 0.45,
-  randomnessPower: 2,
-  insideColor: '#ffd27f',
-  outsideColor: '#8ab0ff'
+  spiralTightness: 0.045,
+  randomness: 0.35,
+  randomnessPower: 1.4,
+  palette: ['#ffd27f', '#8ab0ff', '#c28bff']
 };
 
 // Buffer geometry for tiny background stars
@@ -49,33 +48,26 @@ const positions = new Float32Array(params.particles * 3);
 const colors = new Float32Array(params.particles * 3);
 const sizes = new Float32Array(params.particles);
 
-const colorInside = new THREE.Color(params.insideColor);
-const colorOutside = new THREE.Color(params.outsideColor);
+const colorPalette = params.palette.map(color => new THREE.Color(color));
 
 for (let i = 0; i < params.particles; i++) {
   const i3 = i * 3;
 
-  const radius = Math.random() * params.radius;
+  const radius = Math.pow(Math.random(), 1.25) * params.radius;
   const branch = i % params.arms;
   const branchAngle = (branch / params.arms) * Math.PI * 2;
 
-  const spinAngle = radius * params.spin * (Math.PI / 180);
+  const spinAngle = radius * params.spiralTightness * Math.PI * 2;
+
+  const randomnessStrength =
+    Math.pow(radius / params.radius, params.randomnessPower) * params.randomness;
+
   const randomX =
-    Math.pow(Math.random(), params.randomnessPower) *
-    (Math.random() < 0.5 ? 1 : -1) *
-    params.randomness *
-    radius;
+    (Math.random() - 0.5) * randomnessStrength * params.radius * 0.55;
   const randomY =
-    Math.pow(Math.random(), params.randomnessPower) *
-    (Math.random() < 0.5 ? 1 : -1) *
-    params.randomness *
-    radius *
-    0.4;
+    (Math.random() - 0.5) * randomnessStrength * params.radius * 0.18;
   const randomZ =
-    Math.pow(Math.random(), params.randomnessPower) *
-    (Math.random() < 0.5 ? 1 : -1) *
-    params.randomness *
-    radius;
+    (Math.random() - 0.5) * randomnessStrength * params.radius * 0.55;
 
   const angle = branchAngle + spinAngle;
 
@@ -87,9 +79,11 @@ for (let i = 0; i < params.particles; i++) {
   positions[i3 + 1] = y;
   positions[i3 + 2] = z;
 
-  // color interpolation based on radius
-  const mixedColor = colorInside.clone();
-  mixedColor.lerp(colorOutside, radius / params.radius);
+  // color interpolation within yellow, purple, blue hues
+  const colorA = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+  const colorB = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+  const mixAmount = Math.random() * 0.5 + 0.25;
+  const mixedColor = colorA.clone().lerp(colorB, mixAmount);
 
   colors[i3 + 0] = mixedColor.r;
   colors[i3 + 1] = mixedColor.g;
@@ -203,7 +197,7 @@ for (let i = 0; i < anchorCount; i++) {
   const tRadius = (0.12 + frac * 0.9) * params.radius;
   const angle =
     (arm / params.arms) * Math.PI * 2 +
-    tRadius * (params.spin * (Math.PI / 180)) * 0.9;
+    tRadius * params.spiralTightness * Math.PI * 2 * 0.9;
 
   const rx = Math.cos(angle) * tRadius + (Math.random() - 0.5) * 12;
   const rz = Math.sin(angle) * tRadius + (Math.random() - 0.5) * 12;
@@ -227,7 +221,8 @@ for (let i = 0; i < anchorCount; i++) {
     map: spriteTexture,
     color: 0xfff1c1,
     transparent: true,
-    blending: THREE.AdditiveBlending
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
   });
   const sprite = new THREE.Sprite(spriteMat);
   sprite.scale.set(28, 28, 1);
@@ -260,6 +255,8 @@ for (let i = 0; i < anchorCount; i++) {
 }
 
 clickableGroup.rotation.y = 0;
+
+// (Comets removed)
 
 // ========== Raycaster for hover + click ==========
 const raycaster = new THREE.Raycaster();
@@ -413,6 +410,8 @@ function animate() {
     const baseY = s.userData.baseY;
     s.position.y = baseY + Math.sin(elapsed * 0.6 + idx) * 0.7;
   });
+
+  // (Comet animation removed)
 
   controls.update();
   renderer.render(scene, camera);
