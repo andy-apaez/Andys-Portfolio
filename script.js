@@ -261,6 +261,9 @@ clickableGroup.rotation.y = 0;
 // ========== Raycaster for hover + click ==========
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
+const followTargetWorld = new THREE.Vector3();
+const followCameraPos = new THREE.Vector3();
+let activeFollow = null;
 
 let hovered = null;
 const label = document.getElementById('label');
@@ -340,7 +343,7 @@ function openProjectModal(id, starObj) {
   modal.setAttribute('aria-hidden', 'false');
 
   // animate camera to focus on the clicked star  *** CHANGED
-  const targetPos = starObj.position.clone();
+  const targetPos = starObj.getWorldPosition(new THREE.Vector3());
 
   gsap.to(controls.target, {
     x: targetPos.x,
@@ -354,19 +357,31 @@ function openProjectModal(id, starObj) {
   const offset = new THREE.Vector3(35, 20, 35);
   const camTarget = targetPos.clone().add(offset);
 
+  activeFollow = {
+    star: starObj,
+    offset: offset.clone(),
+    enabled: false
+  };
+
   gsap.to(camera.position, {
     x: camTarget.x,
     y: camTarget.y,
     z: camTarget.z,
     duration: 0.9,
     ease: 'power2.inOut',
-    onUpdate: () => controls.update()
+    onUpdate: () => controls.update(),
+    onComplete: () => {
+      if (activeFollow && activeFollow.star === starObj) {
+        activeFollow.enabled = true;
+      }
+    }
   });
 }
 
 function closeModal() {
   modal.classList.remove('open');
   modal.setAttribute('aria-hidden', 'true');
+  activeFollow = null;
 
   // gently reset camera  *** CHANGED to sync with controls
   gsap.to(camera.position, {
@@ -404,6 +419,12 @@ function animate() {
   // gentle rotation of galaxy points
   points.rotation.y = elapsed * 0.02;
   clickableGroup.rotation.y = elapsed * 0.015;
+  if (activeFollow && activeFollow.enabled) {
+    activeFollow.star.getWorldPosition(followTargetWorld);
+    followCameraPos.copy(followTargetWorld).add(activeFollow.offset);
+    controls.target.lerp(followTargetWorld, 0.08);
+    camera.position.lerp(followCameraPos, 0.08);
+  }
 
   // small floating motion on clickable stars (no drift)  *** CHANGED
   clickableStars.forEach((s, idx) => {
