@@ -31,6 +31,134 @@ const dir = new THREE.DirectionalLight(0xffffff, 0.6);
 dir.position.set(100, 50, 100);
 scene.add(dir);
 
+// ========== Soft reflected-fog layer ==========
+const fogGeometry = new THREE.PlaneGeometry(720, 720, 1, 1);
+
+const fogVertexShader = /* glsl */ `
+  varying vec2 vUv;
+
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const fogFragmentShader = /* glsl */ `
+  precision mediump float;
+  varying vec2 vUv;
+
+  uniform float uTime;
+  uniform vec3 uColor;
+  uniform vec3 uSecondaryColor;
+  uniform float uIntensity;
+  uniform float uNoiseScale;
+  uniform float uSpiralStrength;
+  uniform float uSpiralTightness;
+
+  // Simplex noise (2D) from ashima webgl noise
+  vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+  vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+  vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+  float snoise(vec2 v) {
+    const vec4 C = vec4(0.211324865405187, 0.366025403784439,
+                        -0.577350269189626, 0.024390243902439);
+    vec2 i  = floor(v + dot(v, C.yy) );
+    vec2 x0 = v -   i + dot(i, C.xx);
+
+    vec2 i1;
+    i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+    vec4 x12 = x0.xyxy + C.xxzz;
+    x12.xy -= i1;
+
+    i = mod289(i);
+    vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 ))
+      + i.x + vec3(0.0, i1.x, 1.0 ));
+
+    vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+    m = m*m ;
+    m = m*m ;
+
+    vec3 x = 2.0 * fract(p * C.www) - 1.0;
+    vec3 h = abs(x) - 0.5;
+    vec3 ox = floor(x + 0.5);
+    vec3 a0 = x - ox;
+
+    m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+
+    vec3 g;
+    g.x  = a0.x  * x0.x  + h.x  * x0.y;
+    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+    return 130.0 * dot(m, g);
+  }
+
+  void main() {
+    vec2 centeredUv = (vUv - 0.5) * uNoiseScale;
+    float t = uTime * 0.12;
+
+    float radial = length(centeredUv);
+    float theta = atan(centeredUv.y, centeredUv.x);
+    float swirl = theta + radial * uSpiralStrength + sin(theta * uSpiralTightness + t * 2.0) * 0.18;
+    vec2 swirlUv = vec2(cos(swirl), sin(swirl)) * radial;
+
+    float n1 = snoise(swirlUv * 1.6 + vec2(t * 0.8, -t * 0.45));
+    float n2 = snoise(swirlUv * 3.0 + vec2(-t * 0.35, t * 0.55));
+    float cloud = smoothstep(-0.2, 0.6, n1 * 0.6 + n2 * 0.4);
+
+    float vignette = smoothstep(0.75, 0.08, length(vUv - 0.5));
+    float spiralMask = smoothstep(0.05, 0.8, 1.0 - radial) *
+      (0.55 + 0.45 * smoothstep(-0.35, 0.65, sin(theta * (uSpiralTightness * 0.8) + t * 1.6)));
+
+    float alpha = cloud * vignette * spiralMask * uIntensity;
+    if (alpha <= 0.01) discard;
+
+    vec3 colorMix = mix(uColor, uSecondaryColor, clamp(n1 * 0.5 + 0.5, 0.0, 1.0));
+    gl_FragColor = vec4(colorMix * 1.15, alpha);
+  }
+`;
+
+const fogUniformsA = {
+  uTime: { value: 0 },
+  uColor: { value: new THREE.Color('#7bb6ff') },
+  uSecondaryColor: { value: new THREE.Color('#c7a5ff') },
+  uIntensity: { value: 0.7 },
+  uNoiseScale: { value: 1.35 },
+  uSpiralStrength: { value: 8.0 },
+  uSpiralTightness: { value: 7.5 }
+};
+
+const fogUniformsB = {
+  uTime: { value: 0 },
+  uColor: { value: new THREE.Color('#f8dba0') },
+  uSecondaryColor: { value: new THREE.Color('#8ab0ff') },
+  uIntensity: { value: 0.42 },
+  uNoiseScale: { value: 1.75 },
+  uSpiralStrength: { value: 6.5 },
+  uSpiralTightness: { value: 5.5 }
+};
+
+function createFogLayer(uniforms, rotationOffset = 0) {
+  const mat = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader: fogVertexShader,
+    fragmentShader: fogFragmentShader,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide
+  });
+  const mesh = new THREE.Mesh(fogGeometry, mat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.rotation.z = rotationOffset;
+  mesh.position.y = -4;
+  mesh.renderOrder = -2;
+  return mesh;
+}
+
+const fogLayerA = createFogLayer(fogUniformsA, 0);
+const fogLayerB = createFogLayer(fogUniformsB, Math.PI / 5);
+scene.add(fogLayerA);
+scene.add(fogLayerB); 
+
 // ========== Galaxy particle field ==========
 const params = {
   arms: 5,
@@ -47,6 +175,7 @@ const geometry = new THREE.BufferGeometry();
 const positions = new Float32Array(params.particles * 3);
 const colors = new Float32Array(params.particles * 3);
 const sizes = new Float32Array(params.particles);
+const brightness = new Float32Array(params.particles);
 
 const colorPalette = params.palette.map(color => new THREE.Color(color));
 
@@ -79,6 +208,8 @@ for (let i = 0; i < params.particles; i++) {
   positions[i3 + 1] = y;
   positions[i3 + 2] = z;
 
+  //create a better sprial here maybe with some new partical effect (fog like or smth)
+
   // color interpolation within yellow, purple, blue hues
   const colorA = colorPalette[Math.floor(Math.random() * colorPalette.length)];
   const colorB = colorPalette[Math.floor(Math.random() * colorPalette.length)];
@@ -90,11 +221,13 @@ for (let i = 0; i < params.particles; i++) {
   colors[i3 + 2] = mixedColor.b;
 
   sizes[i] = Math.random() * 1.5 + 0.2;
+  brightness[i] = Math.random() * 0.5 + 0.75;
 }
 
 geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+geometry.setAttribute('brightness', new THREE.BufferAttribute(brightness, 1));
 
 // ========== Star trail shader material ==========
 const particleUniforms = {
@@ -110,21 +243,31 @@ const particleVertexShader = /* glsl */ `
 
   attribute float size;
   attribute vec3 color;
+  attribute float brightness;
 
   varying vec3 vColor;
+  varying float vFalloff;
+  varying float vBrightness;
+  varying float vRadial;
 
   uniform float uPixelRatio;
   uniform float uSize;
   uniform float uPerspective;
+  uniform float uTime;
 
   void main() {
     vColor = color;
+    vBrightness = brightness;
 
     vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
     float dist = -mvPosition.z;
     float perspective = uPerspective / max(dist, 1.0);
     float pointSize = size * uSize * uPixelRatio * perspective;
     gl_PointSize = max(pointSize, 1.5);
+
+    float radial = length(position.xz) / uPerspective;
+    vRadial = clamp(radial, 0.0, 1.0);
+    vFalloff = smoothstep(1.1, 0.15, radial);
 
     gl_Position = projectionMatrix * mvPosition;
   }
@@ -134,7 +277,11 @@ const particleFragmentShader = /* glsl */ `
   precision mediump float;
 
   varying vec3 vColor;
+  varying float vFalloff;
+  varying float vBrightness;
+  varying float vRadial;
   uniform float uTrailStrength;
+  uniform float uTime;
 
   void main() {
     // gl_PointCoord is in [0,1] range
@@ -149,11 +296,18 @@ const particleFragmentShader = /* glsl */ `
     // outer glow
     float glow = smoothstep(1.0, 0.3, r) * 0.5;
 
-    float alpha = core + glow;
+    float alpha = (core + glow) * vFalloff;
 
     if (alpha <= 0.01) discard;
 
-    vec3 color = vColor * (1.2 + glow * 1.5);
+    float twinkle = 0.9 + 0.3 * sin(uTime * 3.0 + gl_FragCoord.x * 0.04 + gl_FragCoord.y * 0.04);
+    float brightness = vBrightness * twinkle;
+
+    vec3 warmCore = vec3(1.0, 0.92, 0.78);
+    vec3 coolOuter = vColor;
+    float coreMix = smoothstep(0.15, 0.75, 1.0 - vRadial);
+    vec3 color = mix(coolOuter, warmCore, coreMix);
+    color *= (1.15 + glow * 1.35) * brightness;
 
     gl_FragColor = vec4(color, alpha);
   }
@@ -182,11 +336,11 @@ const spriteTexture = new THREE.TextureLoader().load(
 
 // Example project data 
 const projects = [
-  { id: 0, name: "Los Tacos Menu", desc: "Interactive menu with slider categories & cart. Stripe + Firebase.", tags: ["React", "Firebase", "Stripe"], demo: "https://example.com/demo1", code: "https://github.com/you/los-tacos" },
-  { id: 1, name: "stuff", desc: "lots of stuff in here.", tags: ["Python", "Wireshark"], demo: "https://example.com/demo2", code: "https://github.com/you/cyber-lab" },
-  { id: 2, name: "blah blah blah", desc: "woopdoodoosoosos.", tags: ["HTML","CSS","JS"], demo: "https://example.com/demo3", code: "https://github.com/you/portfolio" },
-  { id: 3, name: "something something something", desc: "PWA ordering flow with offline support and caching.", tags: ["PWA","ServiceWorker"], demo: "https://example.com/demo4", code: "https://github.com/you/shop-pwa" },
-  { id: 4, name: "another cool porject", desc: "cool details and stuff.", tags: ["Three.js","Websockets"], demo: "https://example.com/demo5", code: "https://github.com/you/3d-viz" }
+  { id: 0, name: "Los Tacos Menu", desc: "Interactive menu with slider categories & cart. Stripe + Firebase.", tags: ["React", "Firebase", "Stripe"], demo: "https://wlostacos.vercel.app/", code: "https://github.com/andy-apaez/Los-Tacos" },
+  { id: 1, name: "Interactive Curtain", desc: "This project renders a cloth-like curtain that reacts when your mouse brushes across it. Under the hood, a lightweight Verlet‑integration cloth simulation keeps a grid of particles connected by constraints, while mouse movement injects localized force to push sections of fabric aside.", tags: ["JavaScript", "HTML", "CSS"], demo: "https://example.com/demo2", code: "https://github.com/andy-apaez/interactive-curtain" },
+  { id: 2, name: "SIEM Dashboard", desc: "interactive dashboard that showcases what a modern Security Information and Event Management (SIEM) console could look like. It highlights alert backlogs, live event streams, telemetry ingestion health, and threat-intelligence watchlists. Everything is powered by mock data so the UI can be demonstrated offline.", tags: ["TypeScript","HTML","CSS","JS"], demo: "/Users/andy/Movies/TapRecord/Video/REC-20251118021927.mp4", code: "https://github.com/andy-apaez/SIEM-Dashboard" },
+  { id: 3, name: "Color Detector", desc: "A Python web app that detects the dominant colors in an uploaded image using KMeans clustering. Users can upload an image via their browser, view the image, and see a palette of the most prominent colors along with their RGB values and percentages.", tags: ["Python"], demo: "https://private-user-images.githubusercontent.com/148652039/493122293-85c05669-a101-40b4-bd6c-3582328a985e.gif?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NjM4NTQxMTcsIm5iZiI6MTc2Mzg1MzgxNywicGF0aCI6Ii8xNDg2NTIwMzkvNDkzMTIyMjkzLTg1YzA1NjY5LWExMDEtNDBiNC1iZDZjLTM1ODIzMjhhOTg1ZS5naWY_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUxMTIyJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MTEyMlQyMzIzMzdaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1lYjhkNDNiNTczYWUwZWZjYmIzNTk5OTQwYWJmZmEyNGFkZGNkNTRhMzZjYTMwNDgyYmI0OWFhYmZhZTM1ZmM4JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.M1l7OqKkUuJBw_zrYcXHpzA3dVG3rWUKgZBi3n0Ei88", code: "https://github.com/andy-apaez/Color_detector" },
+  { id: 4, name: "Brute Force Simulator", desc: "A real-time password guessing simulator built with Python (Flask) and JavaScript. This educational tool demonstrates how brute-force and dictionary attacks work, streaming live guesses, progress, and speed directly in the browser. It helps users understand the importance of strong, complex passwords and common vulnerabilities.", tags: ["Python", "HTML", "CSS"], demo: "https://private-user-images.githubusercontent.com/148652039/483927131-89776196-8bc1-479e-b726-e087b542308e.gif?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NjM4NTUwOTAsIm5iZiI6MTc2Mzg1NDc5MCwicGF0aCI6Ii8xNDg2NTIwMzkvNDgzOTI3MTMxLTg5Nzc2MTk2LThiYzEtNDc5ZS1iNzI2LWUwODdiNTQyMzA4ZS5naWY_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUxMTIyJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MTEyMlQyMzM5NTBaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0zMjNkMDJiZTZkMDBiMmViN2FjZGU5ZTY3MWVhYjc1ZmIxNzZkZDhmMDYwNDY3MGI0ZGZlZjNiOGE4M2E4NGZjJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.kAxCv_p3GFf0bAtYRLyahWkFH1-XrQkTJqH8l0_89Vg", code: "https://github.com/andy-apaez/Brute-Force-Simulator" }
 ];
 
 // Decide positions for clickable stars along spiral — choose t values
@@ -256,7 +410,7 @@ for (let i = 0; i < anchorCount; i++) {
 
 clickableGroup.rotation.y = 0;
 
-// (Comets removed)
+// add shooting stars and stuff for a more emmersive feel, but disable for now (math isnt mathing right now)
 
 // ========== Raycaster for hover + click ==========
 const raycaster = new THREE.Raycaster();
@@ -342,7 +496,7 @@ function openProjectModal(id, starObj) {
   modal.classList.add('open');
   modal.setAttribute('aria-hidden', 'false');
 
-  // animate camera to focus on the clicked star  *** CHANGED
+  // animate camera to focus on the clicked star  
   const targetPos = starObj.getWorldPosition(new THREE.Vector3());
 
   gsap.to(controls.target, {
@@ -413,12 +567,14 @@ const clock = new THREE.Clock();
 function animate() {
   const elapsed = clock.getElapsedTime();
 
-  // update time uniform for trails (can be used for future effects)
   particleUniforms.uTime.value = elapsed;
+  fogUniformsA.uTime.value = elapsed;
+  fogUniformsB.uTime.value = elapsed * 0.9;
 
-  // gentle rotation of galaxy points
   points.rotation.y = elapsed * 0.02;
   clickableGroup.rotation.y = elapsed * 0.015;
+  fogLayerA.rotation.z = elapsed * 0.02;
+  fogLayerB.rotation.z = -elapsed * 0.017;
   if (activeFollow && activeFollow.enabled) {
     activeFollow.star.getWorldPosition(followTargetWorld);
     followCameraPos.copy(followTargetWorld).add(activeFollow.offset);
@@ -432,7 +588,7 @@ function animate() {
     s.position.y = baseY + Math.sin(elapsed * 0.6 + idx) * 0.7;
   });
 
-  // (Comet animation removed)
+  // (Comet animation removed for now)
 
   controls.update();
   renderer.render(scene, camera);
@@ -454,4 +610,31 @@ window.addEventListener('resize', onResize, { passive: true });
 // adjust particle size for small screens
 if (window.innerWidth < 700) {
   particleUniforms.uSize.value = 1.0; 
+}
+
+// ========== Scroll locking to galaxy section ==========
+const galaxySection = document.getElementById('projects');
+const siteNav = document.querySelector('.site-nav');
+let galaxyLockTriggered = false;
+
+if (galaxySection) {
+  const observer = new IntersectionObserver(
+    entries => {
+      entries.forEach(entry => {
+        if (
+          entry.isIntersecting &&
+          !galaxyLockTriggered &&
+          entry.boundingClientRect.top < window.innerHeight * 0.4
+        ) {
+          galaxyLockTriggered = true;
+          const navOffset = (siteNav?.offsetHeight || 60) + 10;
+          const targetY = Math.max(galaxySection.offsetTop - navOffset, 0);
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
+          observer.disconnect();
+        }
+      });
+    },
+    { threshold: 0.35 }
+  );
+  observer.observe(galaxySection);
 }

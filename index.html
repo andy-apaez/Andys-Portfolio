@@ -19,44 +19,8 @@
         </div>
     </nav>
 
-    <section id="projects" class="galaxy-section">
-        <div id="container"></div>
-        <div class="galaxy-label">
-            <span>Interactive Projects Galaxy</span>
-            <p>Click the glowing stars to explore featured work</p>
-        </div>
-    </section>
-
-    <!-- small hint -->
-    <div class="hint">Drag to orbit • Scroll to zoom • Click bright stars to open projects</div>
-
-    <!-- floating label for hover -->
-    <div id="label" class="label"></div>
-
-    <!-- project modal -->
-    <div id="modal" class="modal" role="dialog" aria-hidden="true">
-        <header>
-            <h3 id="modal-title">Project title</h3>
-            <button class="close-btn" id="closeBtn" aria-label="Close">✕</button>
-        </header>
-
-        <p id="modal-desc">Short description of the project. Technologies and purpose.</p>
-
-        <div class="meta" id="modal-tags"></div>
-
-        <div style="margin-top:12px; display:flex; gap:10px;">
-            <a id="modal-demo" href="#" target="_blank" rel="noopener">
-                <button class="demo-btn">Live Demo</button>
-            </a>
-
-            <a id="modal-github" href="#" target="_blank" rel="noopener">
-                <button class="code-btn">View Code</button>
-            </a>
-        </div>
-    </div>
-
     <main>
-        <section id="about" class="content-section">
+        <section id="about" class="content-section about-section">
             <div class="section-inner">
                 <div class="section-header">
                     <h2>About Me</h2>
@@ -67,8 +31,17 @@
                 <div class="about-grid">
                     <div class="about-copy">
                         <p>
-                            a very long paragraph about me and stuff and things and whatever else
+                            I’m passionate about creating meaningful, interactive software. Over the past few years, I’ve worked on dozens of
+                            personal projects that helped me develop strong skills in web development, cloud services, and security fundamentals. I
+                            enjoy transforming ideas into polished products, learning new technologies along the way, and constantly challenging
+                            myself to build more advanced and creative solutions.
                         </p>
+                        <div class="focus-tags">
+                            <span class="pill">Creative coding</span>
+                            <span class="pill">Cloud &amp; Security</span>
+                            <span class="pill">Interactive UI</span>
+                            <span class="pill">Problem solving</span>
+                        </div>
                         <div class="stats-row">
                             <div class="stat">
                                 <span class="stat-value">2+</span>
@@ -109,6 +82,42 @@
             </div>
         </section>
 
+        <section id="projects" class="galaxy-section">
+            <div id="container"></div>
+            <div class="galaxy-label">
+                <span>Interactive Projects Galaxy</span>
+                <p>Click the glowing stars to explore featured work</p>
+            </div>
+        </section>
+
+        <!-- small hint -->
+        <div class="hint">Drag to orbit • Scroll to zoom • Click bright stars to open projects</div>
+
+        <!-- floating label for hover -->
+        <div id="label" class="label"></div>
+
+        <!-- project modal -->
+        <div id="modal" class="modal" role="dialog" aria-hidden="true">
+            <header>
+                <h3 id="modal-title">Project title</h3>
+                <button class="close-btn" id="closeBtn" aria-label="Close">✕</button>
+            </header>
+
+            <p id="modal-desc">Short description of the project. Technologies and purpose.</p>
+
+            <div class="meta" id="modal-tags"></div>
+
+        <div class="modal-actions">
+            <a id="modal-demo" href="#" target="_blank" rel="noopener">
+                <button class="demo-btn">Live Demo</button>
+            </a>
+
+            <a id="modal-github" href="#" target="_blank" rel="noopener">
+                    <button class="code-btn">View Code</button>
+                </a>
+            </div>
+        </div>
+
         <section id="contact" class="content-section">
             <div class="section-inner">
                 <div class="section-header">
@@ -134,8 +143,8 @@
                             <h4>Quick Links</h4>
                             <div class="quick-links">
                                 <a class="ghost-btn" href="#certifications">Certifications</a>
-                                <a class="ghost-btn" href="#projects">Projects</a>
-                                <a class="ghost-btn" href="resume">Resume</a>
+                                <a class="ghost-btn" href="https://github.com/andy-apaez?tab=repositories">Full Project List</a>
+                                <a class="ghost-btn" href="Andy Apaez Resume.pdf">Resume</a>
                             </div>
                         </article>
                     </div>
