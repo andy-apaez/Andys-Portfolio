@@ -13,6 +13,7 @@
     <nav class="site-nav">
         <div class="nav-brand">Andy • Portfolio</div>
         <div class="nav-links">
+            <a href="#skills" class="nav-link">Skills</a>
             <a href="#about" class="nav-link">About</a>
             <a href="#projects" class="nav-link">Projects</a>
             <a href="#contact" class="nav-link">Contact</a>
@@ -20,6 +21,86 @@
     </nav>
 
     <main>
+        <section id="projects" class="galaxy-section">
+            <div id="container"></div>
+            <div class="galaxy-label">
+                <span>Interactive Projects Galaxy</span>
+                <p>Click the glowing stars to explore featured work</p>
+            </div>
+        </section>
+
+        <!-- small hint -->
+        <div class="hint">Drag to orbit • Scroll to zoom • Click bright stars to open projects</div>
+
+        <!-- floating label for hover -->
+        <div id="label" class="label"></div>
+
+        <!-- project modal -->
+        <div id="modal" class="modal" role="dialog" aria-hidden="true">
+            <header>
+                <h3 id="modal-title">Project title</h3>
+                <button class="close-btn" id="closeBtn" aria-label="Close">✕</button>
+            </header>
+
+            <p id="modal-desc">Short description of the project. Technologies and purpose.</p>
+
+            <div class="meta" id="modal-tags"></div>
+
+        <div class="modal-actions">
+            <a id="modal-demo" href="#" target="_blank" rel="noopener">
+                <button class="demo-btn">Live Demo</button>
+            </a>
+
+            <a id="modal-github" href="#" target="_blank" rel="noopener">
+                    <button class="code-btn">View Code</button>
+                </a>
+            </div>
+        </div>
+
+        <section id="skills" class="content-section skills-section">
+            <div class="section-inner">
+                <div class="section-header">
+                    <h2>Skills</h2>
+                    <p class="section-subtitle">Looping 3D stack of the languages I work with—hover to pause.</p>
+                </div>
+
+                <div class="skills-layout">
+                    <div class="skill-stack" aria-label="Rotating skill highlights">
+                        <article class="skill-card">
+                            <div class="skill-logo">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" alt="JavaScript logo">
+                            </div>
+                            <h3>JavaScript</h3>
+                        </article>
+                        <article class="skill-card">
+                            <div class="skill-logo">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg" alt="Python logo">
+                            </div>
+                            <h3>Python</h3>
+                        </article>
+                        <article class="skill-card">
+                            <div class="skill-logo">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML logo">
+                            </div>
+                            <h3>HTML</h3>
+                        </article>
+                        <article class="skill-card">
+                            <div class="skill-logo">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" alt="CSS logo">
+                            </div>
+                            <h3>CSS</h3>
+                        </article>
+                        <article class="skill-card">
+                            <div class="skill-logo">
+                                <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg" alt="C++ logo">
+                            </div>
+                            <h3>C++</h3>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="about" class="content-section about-section">
             <div class="section-inner">
                 <div class="section-header">
@@ -81,42 +162,6 @@
                 </div>
             </div>
         </section>
-
-        <section id="projects" class="galaxy-section">
-            <div id="container"></div>
-            <div class="galaxy-label">
-                <span>Interactive Projects Galaxy</span>
-                <p>Click the glowing stars to explore featured work</p>
-            </div>
-        </section>
-
-        <!-- small hint -->
-        <div class="hint">Drag to orbit • Scroll to zoom • Click bright stars to open projects</div>
-
-        <!-- floating label for hover -->
-        <div id="label" class="label"></div>
-
-        <!-- project modal -->
-        <div id="modal" class="modal" role="dialog" aria-hidden="true">
-            <header>
-                <h3 id="modal-title">Project title</h3>
-                <button class="close-btn" id="closeBtn" aria-label="Close">✕</button>
-            </header>
-
-            <p id="modal-desc">Short description of the project. Technologies and purpose.</p>
-
-            <div class="meta" id="modal-tags"></div>
-
-        <div class="modal-actions">
-            <a id="modal-demo" href="#" target="_blank" rel="noopener">
-                <button class="demo-btn">Live Demo</button>
-            </a>
-
-            <a id="modal-github" href="#" target="_blank" rel="noopener">
-                    <button class="code-btn">View Code</button>
-                </a>
-            </div>
-        </div>
 
         <section id="contact" class="content-section">
             <div class="section-inner">
