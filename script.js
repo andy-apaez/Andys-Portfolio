@@ -31,6 +31,60 @@ const dir = new THREE.DirectionalLight(0xffffff, 0.6);
 dir.position.set(100, 50, 100);
 scene.add(dir);
 
+const spriteTexture = new THREE.TextureLoader().load(
+  'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/sprites/spark1.png'
+);
+
+// Subtle inverted skydome with procedural star/nebula texture
+function createProceduralSkyTexture() {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  // base fill
+  ctx.fillStyle = '#060814';
+  ctx.fillRect(0, 0, size, size);
+
+  // faint nebula gradient
+  const grad = ctx.createRadialGradient(size * 0.5, size * 0.5, size * 0.1, size * 0.5, size * 0.5, size * 0.55);
+  grad.addColorStop(0, 'rgba(255, 223, 186, 0.08)');
+  grad.addColorStop(1, 'rgba(110, 150, 255, 0.03)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, size, size);
+
+  // sparse tiny stars
+  for (let i = 0; i < 450; i++) {
+    const x = Math.random() * size;
+    const y = Math.random() * size;
+    const r = Math.random() * 1.2 + 0.2;
+    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.08})`;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+const skyTexture = createProceduralSkyTexture();
+const skySphere = new THREE.Mesh(
+  new THREE.SphereGeometry(1400, 48, 32),
+  new THREE.MeshBasicMaterial({
+    map: skyTexture,
+    side: THREE.BackSide,
+    transparent: true,
+    opacity: 0.1,
+    depthWrite: false,
+    depthTest: false
+  })
+);
+scene.add(skySphere);
+
 // ========== Galaxy particle field ==========
 const params = {
   arms: 5,
@@ -132,7 +186,8 @@ for (let i = 0; i < armStarCount; i++) {
 
   const jitter = Math.pow(radius / params.radius, params.randomnessPower) * params.randomness;
   const x = Math.cos(angle) * radius + (Math.random() - 0.5) * jitter * params.radius * 0.4;
-  const y = (Math.random() - 0.5) * jitter * params.radius * 0.08;
+  const yRange = THREE.MathUtils.lerp(3, 18, Math.min(1, radius / params.radius));
+  const y = (Math.random() - 0.5) * yRange;
   const z = Math.sin(angle) * radius + (Math.random() - 0.5) * jitter * params.radius * 0.4;
 
   armPositions[i3 + 0] = x;
@@ -180,7 +235,7 @@ for (let i = 0; i < clusterCount; i++) {
   const angle = branchAngle + spinAngle;
   const cx = Math.cos(angle) * radius + (Math.random() - 0.5) * 12;
   const cz = Math.sin(angle) * radius + (Math.random() - 0.5) * 12;
-  const cy = (Math.random() - 0.5) * 8;
+  const cy = (Math.random() - 0.5) * THREE.MathUtils.lerp(6, 18, Math.min(1, radius / params.radius));
   clusterCenters.push({ x: cx, y: cy, z: cz, radius: 6 + Math.random() * 10, count: Math.floor(Math.random() * 31) + 20 });
   clusterTotal += clusterCenters[i].count;
 }
@@ -234,6 +289,107 @@ const clusterStars = new THREE.Points(clusterGeometry, clusterMaterial);
 clusterStars.position.y = -4;
 clusterGroup.add(clusterStars);
 scene.add(clusterGroup);
+
+// Huge soft particles (wide, low opacity, slight parallax)
+const softCloudParams = { count: 120, radius: 2000 };
+const softCloudGeom = new THREE.BufferGeometry();
+const softPositions = new Float32Array(softCloudParams.count * 3);
+for (let i = 0; i < softCloudParams.count; i++) {
+  const i3 = i * 3;
+  const r = Math.pow(Math.random(), 0.7) * softCloudParams.radius + 300;
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos(2 * Math.random() - 1);
+  softPositions[i3 + 0] = r * Math.sin(phi) * Math.cos(theta);
+  softPositions[i3 + 1] = r * Math.cos(phi) * 0.25;
+  softPositions[i3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+}
+softCloudGeom.setAttribute('position', new THREE.BufferAttribute(softPositions, 3));
+
+const softCloudMat = new THREE.PointsMaterial({
+  map: spriteTexture,
+  size: 90,
+  sizeAttenuation: true,
+  transparent: true,
+  opacity: 0.02,
+  color: new THREE.Color('#bcd6ff'),
+  depthWrite: false,
+  blending: THREE.AdditiveBlending
+});
+
+const softClouds = new THREE.Points(softCloudGeom, softCloudMat);
+softClouds.position.y = -18;
+scene.add(softClouds);
+
+// Near-camera micro stars (fast parallax, twinkle, avoid core)
+const microCount = 90;
+const microGeom = new THREE.BufferGeometry();
+const microPos = new Float32Array(microCount * 3);
+const microPhase = new Float32Array(microCount);
+for (let i = 0; i < microCount; i++) {
+  const i3 = i * 3;
+  const radius = THREE.MathUtils.lerp(140, 320, Math.random());
+  const angle = Math.random() * Math.PI * 2;
+  const y = (Math.random() - 0.5) * THREE.MathUtils.lerp(30, 90, radius / 320);
+  microPos[i3 + 0] = Math.cos(angle) * radius;
+  microPos[i3 + 1] = y;
+  microPos[i3 + 2] = Math.sin(angle) * radius;
+  microPhase[i] = Math.random() * Math.PI * 2;
+}
+microGeom.setAttribute('position', new THREE.BufferAttribute(microPos, 3));
+microGeom.setAttribute('phase', new THREE.BufferAttribute(microPhase, 1));
+
+const microUniforms = {
+  uTime: { value: 0 },
+  uParallax: { value: new THREE.Vector2(0, 0) },
+  uSize: { value: 2.1 },
+  uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
+};
+
+const microVertex = /* glsl */ `
+  precision mediump float;
+  attribute float phase;
+  varying float vPhase;
+  uniform vec2 uParallax;
+  uniform float uSize;
+  uniform float uPixelRatio;
+  void main() {
+    vPhase = phase;
+    vec3 pos = position;
+    pos.x += uParallax.x * 0.6;
+    pos.y += uParallax.y * 0.35;
+    pos.z += uParallax.x * 0.7;
+    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+    gl_PointSize = uSize * uPixelRatio;
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`;
+
+const microFragment = /* glsl */ `
+  precision mediump float;
+  varying float vPhase;
+  uniform float uTime;
+  void main() {
+    vec2 uv = gl_PointCoord - 0.5;
+    float r = length(uv);
+    float soft = smoothstep(0.5, 0.0, r);
+    float twinkle = 0.7 + 0.35 * sin(uTime * 6.0 + vPhase);
+    float alpha = soft * twinkle;
+    if (alpha <= 0.02) discard;
+    gl_FragColor = vec4(vec3(1.0), alpha);
+  }
+`;
+
+const microMat = new THREE.ShaderMaterial({
+  uniforms: microUniforms,
+  vertexShader: microVertex,
+  fragmentShader: microFragment,
+  transparent: true,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending
+});
+
+const microStars = new THREE.Points(microGeom, microMat);
+scene.add(microStars);
 
 // Radial gradient overlay (warm core -> cool outer, low alpha)
 const radialGradientUniforms = {
@@ -316,7 +472,8 @@ for (let i = 0; i < params.particles; i++) {
     (Math.random() - 0.5) * randomnessStrength * params.radius * 0.55;
 
   const x = Math.cos(angle) * radius + randomX;
-  const y = randomY * 0.15;
+  const verticalRange = THREE.MathUtils.lerp(4, 26, Math.min(1, radius / params.radius));
+  const y = (Math.random() - 0.5) * verticalRange;
   const z = Math.sin(angle) * radius + randomZ;
 
   positions[i3 + 0] = x;
@@ -470,10 +627,6 @@ scene.add(points);
 const clickableStars = [];
 const clickableGroup = new THREE.Group();
 scene.add(clickableGroup);
-
-const spriteTexture = new THREE.TextureLoader().load(
-  'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/sprites/spark1.png'
-);
 
 // Example project data 
 const projects = [
@@ -731,16 +884,23 @@ function animate() {
 
   points.rotation.y = elapsed * 0.018;
   clickableGroup.rotation.y = elapsed * 0.015;
+  skySphere.rotation.y = elapsed * 0.0004;
   farStars.rotation.y = elapsed * 0.0008;
   midStars.rotation.y = elapsed * 0.0016;
   nearStars.rotation.y = elapsed * 0.0022;
   armStars.rotation.y = elapsed * 0.002;
   clusterGroup.rotation.y = elapsed * 0.0021;
+  softClouds.rotation.y = elapsed * 0.0009;
 
   nearParallax.lerp(nearParallaxTarget, 0.08);
   nearStars.position.x = THREE.MathUtils.lerp(nearStars.position.x, nearBasePos.x + nearParallax.x, 0.12);
   nearStars.position.y = THREE.MathUtils.lerp(nearStars.position.y, nearBasePos.y + nearParallax.y * 0.35, 0.12);
   nearStars.position.z = THREE.MathUtils.lerp(nearStars.position.z, nearBasePos.z + nearParallax.x * 0.4, 0.12);
+  softClouds.position.x = THREE.MathUtils.lerp(softClouds.position.x, nearParallax.x * 12, 0.06);
+  softClouds.position.z = THREE.MathUtils.lerp(softClouds.position.z, nearParallax.x * 10, 0.06);
+  microUniforms.uParallax.value.lerp(nearParallaxTarget, 0.18);
+  microUniforms.uTime.value = elapsed;
+
   radialGradientMesh.lookAt(camera.position);
   if (activeFollow && activeFollow.enabled) {
     activeFollow.star.getWorldPosition(followTargetWorld);
@@ -789,6 +949,7 @@ function onResize() {
   camera.updateProjectionMatrix();
   renderer.setSize(w, h);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  microUniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2);
 }
 window.addEventListener('resize', onResize, { passive: true });
 
