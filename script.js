@@ -4,8 +4,8 @@ import gsap from 'https://cdn.skypack.dev/gsap';
 
 // ========== Basic setup ==========
 const container = document.getElementById('container');
-const width = container.clientWidth;
-const height = container.clientHeight;
+const width = Math.max(container.clientWidth, 1);
+const height = Math.max(container.clientHeight, 1);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
 renderer.setSize(width, height);
@@ -16,13 +16,16 @@ container.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 5000);
-camera.position.set(0, 60, 220);
+camera.position.set(0, 52, 200);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.06;
 controls.minDistance = 40;
 controls.maxDistance = 800;
+controls.enabled = true;
+controls.enableZoom = true;
+controls.enablePan = false;
 
 // subtle ambient + rim light
 const ambient = new THREE.AmbientLight(0xffffff, 0.25);
@@ -44,7 +47,7 @@ function createProceduralSkyTexture() {
   const ctx = canvas.getContext('2d');
 
   // base fill
-  ctx.fillStyle = '#060814';
+  ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, size, size);
 
   // faint nebula gradient
@@ -73,12 +76,12 @@ function createProceduralSkyTexture() {
 
 const skyTexture = createProceduralSkyTexture();
 const skySphere = new THREE.Mesh(
-  new THREE.SphereGeometry(1400, 48, 32),
+  new THREE.SphereGeometry(1100, 48, 32),
   new THREE.MeshBasicMaterial({
     map: skyTexture,
     side: THREE.BackSide,
     transparent: true,
-    opacity: 0.1,
+    opacity: 0.07,
     depthWrite: false,
     depthTest: false
   })
@@ -87,12 +90,12 @@ scene.add(skySphere);
 
 // ========== Galaxy particle field ==========
 const params = {
-  arms: 5,
-  particles: 6000,
-  radius: 300,
-  spiralTightness: 0.045,
-  randomness: 0.35,
-  randomnessPower: 1.4,
+  arms: 4,
+  particles: 1400,
+  radius: 230,
+  spiralTightness: 0.038,
+  randomness: 0.28,
+  randomnessPower: 1.25,
   palette: ['#8cc5ff', '#7fa6ff', '#93d5ff', '#ffd18f']
 };
 
@@ -135,10 +138,10 @@ function createStarLayer({ count, radius, size, opacity, color, yScale = 0.6 }) 
 }
 
 const farStars = createStarLayer({
-  count: 1800,
-  radius: 1800,
-  size: 0.7,
-  opacity: 0.35,
+  count: 520,
+  radius: 1400,
+  size: 0.65,
+  opacity: 0.3,
   color: '#6c7a91',
   yScale: 0.55
 });
@@ -146,10 +149,10 @@ farStars.position.y = -20;
 scene.add(farStars);
 
 const midStars = createStarLayer({
-  count: 1400,
-  radius: 1100,
-  size: 1.0,
-  opacity: 0.5,
+  count: 360,
+  radius: 900,
+  size: 0.95,
+  opacity: 0.45,
   color: '#7c8fb0',
   yScale: 0.65
 });
@@ -157,10 +160,10 @@ midStars.position.y = -12;
 scene.add(midStars);
 
 const nearStars = createStarLayer({
-  count: 260,
-  radius: 700,
-  size: 1.6,
-  opacity: 0.7,
+  count: 120,
+  radius: 560,
+  size: 1.4,
+  opacity: 0.6,
   color: '#9fc4ff',
   yScale: 0.8
 });
@@ -169,7 +172,7 @@ scene.add(nearStars);
 const nearBasePos = nearStars.position.clone();
 
 // Arm stars hugging spiral curves (extra density near arms)
-const armStarCount = 1800;
+const armStarCount = 520;
 const armStarGeometry = new THREE.BufferGeometry();
 const armPositions = new Float32Array(armStarCount * 3);
 const armColors = new Float32Array(armStarCount * 3);
@@ -223,7 +226,7 @@ scene.add(armStars);
 
 // Clustered bright stars placed along arms
 const clusterGroup = new THREE.Group();
-const clusterCount = Math.floor(Math.random() * 16) + 15; // 15–30 clusters
+const clusterCount = 4;
 let clusterTotal = 0;
 const clusterCenters = [];
 
@@ -236,7 +239,7 @@ for (let i = 0; i < clusterCount; i++) {
   const cx = Math.cos(angle) * radius + (Math.random() - 0.5) * 12;
   const cz = Math.sin(angle) * radius + (Math.random() - 0.5) * 12;
   const cy = (Math.random() - 0.5) * THREE.MathUtils.lerp(6, 18, Math.min(1, radius / params.radius));
-  clusterCenters.push({ x: cx, y: cy, z: cz, radius: 6 + Math.random() * 10, count: Math.floor(Math.random() * 31) + 20 });
+  clusterCenters.push({ x: cx, y: cy, z: cz, radius: 6 + Math.random() * 8, count: Math.floor(Math.random() * 18) + 14 });
   clusterTotal += clusterCenters[i].count;
 }
 
@@ -291,7 +294,7 @@ clusterGroup.add(clusterStars);
 scene.add(clusterGroup);
 
 // Huge soft particles (wide, low opacity, slight parallax)
-const softCloudParams = { count: 120, radius: 2000 };
+const softCloudParams = { count: 40, radius: 1600 };
 const softCloudGeom = new THREE.BufferGeometry();
 const softPositions = new Float32Array(softCloudParams.count * 3);
 for (let i = 0; i < softCloudParams.count; i++) {
@@ -307,10 +310,10 @@ softCloudGeom.setAttribute('position', new THREE.BufferAttribute(softPositions, 
 
 const softCloudMat = new THREE.PointsMaterial({
   map: spriteTexture,
-  size: 90,
+  size: 70,
   sizeAttenuation: true,
   transparent: true,
-  opacity: 0.02,
+  opacity: 0.015,
   color: new THREE.Color('#bcd6ff'),
   depthWrite: false,
   blending: THREE.AdditiveBlending
@@ -321,7 +324,7 @@ softClouds.position.y = -18;
 scene.add(softClouds);
 
 // Near-camera micro stars (fast parallax, twinkle, avoid core)
-const microCount = 90;
+const microCount = 40;
 const microGeom = new THREE.BufferGeometry();
 const microPos = new Float32Array(microCount * 3);
 const microPhase = new Float32Array(microCount);
@@ -341,7 +344,7 @@ microGeom.setAttribute('phase', new THREE.BufferAttribute(microPhase, 1));
 const microUniforms = {
   uTime: { value: 0 },
   uParallax: { value: new THREE.Vector2(0, 0) },
-  uSize: { value: 2.1 },
+  uSize: { value: 1.8 },
   uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
 };
 
@@ -487,7 +490,7 @@ for (let i = 0; i < params.particles; i++) {
   starY[i] = y;
 
   const radialNorm = radius / params.radius;
-  starSpeed[i] = 0.06 + radialNorm * 0.16 + (Math.random() - 0.5) * 0.015;
+  starSpeed[i] = 0.02 + radialNorm * 0.05 + (Math.random() - 0.5) * 0.01;
 
   //create a better sprial here maybe with some new partical effect (fog like or smth)
 
@@ -531,8 +534,8 @@ geometry.setAttribute('brightness', new THREE.BufferAttribute(brightness, 1));
 const particleUniforms = {
   uTime: { value: 0 },
   uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
-  uSize: { value: 1.6 },
-  uTrailStrength: { value: 1.3 },
+  uSize: { value: 1.3 },
+  uTrailStrength: { value: 1.1 },
   uPerspective: { value: params.radius * 1.1 }
 };
 
@@ -638,7 +641,8 @@ const projects = [
 ];
 
 // Decide positions for clickable stars along spiral — choose t values
-const anchorCount = projects.length;
+const featuredProjects = projects.slice(0, 4);
+const anchorCount = featuredProjects.length;
 for (let i = 0; i < anchorCount; i++) {
   const frac = i / anchorCount;
   const arm = i % params.arms;
@@ -662,7 +666,7 @@ for (let i = 0; i < anchorCount; i++) {
   const starMesh = new THREE.Mesh(starGeom, starMat);
   starMesh.position.set(rx, ry, rz);
   starMesh.userData.baseY = ry; 
-  starMesh.userData.projectId = projects[i].id;
+  starMesh.userData.projectId = featuredProjects[i].id;
 
   // flare sprite (glow)
   const spriteMat = new THREE.SpriteMaterial({
@@ -714,10 +718,12 @@ const followCameraPos = new THREE.Vector3();
 let activeFollow = null;
 const nearParallax = new THREE.Vector2(0, 0);
 const nearParallaxTarget = new THREE.Vector2(0, 0);
+const galaxyMotion = { value: 1 };
 
 let hovered = null;
 const label = document.getElementById('label');
 let prevHover = null;
+let isGalaxyExpanded = false;
 
 function updatePointerFromEvent(event) {
   const rect = renderer.domElement.getBoundingClientRect();
@@ -726,7 +732,7 @@ function updatePointerFromEvent(event) {
 
    const nx = (event.clientX / window.innerWidth - 0.5) * 2;
    const ny = (event.clientY / window.innerHeight - 0.5) * 2;
-   nearParallaxTarget.set(nx * 14, -ny * 10);
+   nearParallaxTarget.set(nx * 9, -ny * 7);
 }
 
 function onPointerMove(event) {
@@ -853,8 +859,8 @@ function closeModal() {
   // gently reset camera  *** CHANGED to sync with controls
   gsap.to(camera.position, {
     x: 0,
-    y: 60,
-    z: 220,
+    y: 52,
+    z: 200,
     duration: 0.9,
     ease: 'power2.inOut',
     onUpdate: () => controls.update()
@@ -882,23 +888,23 @@ function animate() {
 
   particleUniforms.uTime.value = elapsed;
 
-  points.rotation.y = elapsed * 0.018;
-  clickableGroup.rotation.y = elapsed * 0.015;
-  skySphere.rotation.y = elapsed * 0.0004;
-  farStars.rotation.y = elapsed * 0.0008;
-  midStars.rotation.y = elapsed * 0.0016;
-  nearStars.rotation.y = elapsed * 0.0022;
-  armStars.rotation.y = elapsed * 0.002;
-  clusterGroup.rotation.y = elapsed * 0.0021;
-  softClouds.rotation.y = elapsed * 0.0009;
+  points.rotation.y = elapsed * 0.006 * galaxyMotion.value;
+  clickableGroup.rotation.y = elapsed * 0.004 * galaxyMotion.value;
+  skySphere.rotation.y = elapsed * 0.0002 * galaxyMotion.value;
+  farStars.rotation.y = elapsed * 0.0004 * galaxyMotion.value;
+  midStars.rotation.y = elapsed * 0.0008 * galaxyMotion.value;
+  nearStars.rotation.y = elapsed * 0.0011 * galaxyMotion.value;
+  armStars.rotation.y = elapsed * 0.001 * galaxyMotion.value;
+  clusterGroup.rotation.y = elapsed * 0.0012 * galaxyMotion.value;
+  softClouds.rotation.y = elapsed * 0.0005 * galaxyMotion.value;
 
-  nearParallax.lerp(nearParallaxTarget, 0.08);
-  nearStars.position.x = THREE.MathUtils.lerp(nearStars.position.x, nearBasePos.x + nearParallax.x, 0.12);
-  nearStars.position.y = THREE.MathUtils.lerp(nearStars.position.y, nearBasePos.y + nearParallax.y * 0.35, 0.12);
-  nearStars.position.z = THREE.MathUtils.lerp(nearStars.position.z, nearBasePos.z + nearParallax.x * 0.4, 0.12);
-  softClouds.position.x = THREE.MathUtils.lerp(softClouds.position.x, nearParallax.x * 12, 0.06);
-  softClouds.position.z = THREE.MathUtils.lerp(softClouds.position.z, nearParallax.x * 10, 0.06);
-  microUniforms.uParallax.value.lerp(nearParallaxTarget, 0.18);
+  nearParallax.lerp(nearParallaxTarget, 0.06);
+  nearStars.position.x = THREE.MathUtils.lerp(nearStars.position.x, nearBasePos.x + nearParallax.x, 0.08);
+  nearStars.position.y = THREE.MathUtils.lerp(nearStars.position.y, nearBasePos.y + nearParallax.y * 0.3, 0.08);
+  nearStars.position.z = THREE.MathUtils.lerp(nearStars.position.z, nearBasePos.z + nearParallax.x * 0.3, 0.08);
+  softClouds.position.x = THREE.MathUtils.lerp(softClouds.position.x, nearParallax.x * 8, 0.05);
+  softClouds.position.z = THREE.MathUtils.lerp(softClouds.position.z, nearParallax.x * 6, 0.05);
+  microUniforms.uParallax.value.lerp(nearParallaxTarget, 0.12);
   microUniforms.uTime.value = elapsed;
 
   radialGradientMesh.lookAt(camera.position);
@@ -924,10 +930,10 @@ function animate() {
   // update galaxy star positions with per-star speed and radial falloff
   const posArray = geometry.attributes.position.array;
   const camDist = camera.position.length();
-  const radialScale = 1 + Math.min(Math.max((camDist - 220) / 280, 0), 1) * 0.2; // zoom adds subtle arm separation
+  const radialScale = 1 + Math.min(Math.max((camDist - 200) / 260, 0), 1) * 0.18; // zoom adds subtle arm separation
   for (let i = 0; i < params.particles; i++) {
     const i3 = i * 3;
-    const theta = starAngles[i] + elapsed * starSpeed[i];
+    const theta = starAngles[i] + elapsed * starSpeed[i] * galaxyMotion.value;
     const r = starRadius[i] * radialScale;
     posArray[i3 + 0] = Math.cos(theta) * r + starOffsetX[i];
     posArray[i3 + 1] = starY[i];
@@ -943,8 +949,8 @@ animate();
 
 // ========== Responsive ==========
 function onResize() {
-  const w = container.clientWidth;
-  const h = container.clientHeight;
+  const w = Math.max(container.clientWidth, 1);
+  const h = Math.max(container.clientHeight, 1);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   renderer.setSize(w, h);
@@ -952,119 +958,357 @@ function onResize() {
   microUniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2);
 }
 window.addEventListener('resize', onResize, { passive: true });
+requestAnimationFrame(onResize);
+
+if (window.ResizeObserver) {
+  const ro = new ResizeObserver(() => onResize());
+  ro.observe(container);
+}
 
 // adjust particle size for small screens
 if (window.innerWidth < 700) {
-  particleUniforms.uSize.value = 1.0; 
+  particleUniforms.uSize.value = 0.9; 
 }
 
-// ========== Skills 3D stack (GSAP) ==========
-const skillStack = document.querySelector('.skill-stack');
-const skillCards = gsap.utils.toArray('.skill-card');
-
-if (skillStack && skillCards.length) {
-  let currentIndex = 0;
-  let activeTimeline = null;
-  const baseDepth = -140;
-
-  // Initialize all cards off-center
-  skillCards.forEach((card, i) => {
-    gsap.set(card, {
-      x: 140,
-      z: baseDepth,
-      scale: 0.85,
-      opacity: 0.25,
-      zIndex: i
-    });
-  });
-
-  // Bring the first card forward
-  gsap.set(skillCards[0], {
-    x: 0,
-    z: 80,
-    scale: 1.12,
-    opacity: 1,
-    zIndex: skillCards.length + 2
-  });
-
-  const runCycle = () => {
-    const current = skillCards[currentIndex];
-    const nextIndex = (currentIndex + 1) % skillCards.length;
-    const next = skillCards[nextIndex];
-
-    // Prep incoming card on the right, slightly back
-    gsap.set(next, {
-      x: 180,
-      z: baseDepth,
-      scale: 0.82,
-      opacity: 0.2,
-      zIndex: skillCards.length + 3
-    });
-
-    activeTimeline = gsap.timeline({
-      defaults: { ease: 'power3.inOut' },
-      onComplete: () => {
-        currentIndex = nextIndex;
-        runCycle();
-      }
-    });
-
-    activeTimeline
-      // Current slides left/back and softens
-      .to(current, {
-        x: -180,
-        z: baseDepth - 60,
-        scale: 0.72,
-        opacity: 0.1,
-        duration: 0.9
-      }, 0)
-      // Next sweeps in from the right, forward and bright
-      .to(next, {
-        x: 0,
-        z: 100,
-        scale: 1.16,
-        opacity: 1,
-        duration: 1
-      }, 0)
-      // Reset the outgoing card to the right/back for future cycles
-      .set(current, {
-        x: 140,
-        z: baseDepth,
-        scale: 0.85,
-        opacity: 0.22,
-        zIndex: 1
-      });
-  };
-
-  runCycle();
-
-  skillStack.addEventListener('mouseenter', () => activeTimeline?.pause());
-  skillStack.addEventListener('mouseleave', () => activeTimeline?.resume());
-}
-
-// ========== Scroll locking to galaxy section ==========
-const galaxySection = document.getElementById('projects');
+// ========== Galaxy expand/collapse ==========
+const expandBtn = document.getElementById('expand-galaxy');
+const closeGalaxyBtn = document.getElementById('close-galaxy');
+const viewProjectsBtn = document.getElementById('view-projects');
+const heroCopy = document.querySelector('.hero-copy');
+const heroActions = document.querySelector('.hero-actions');
 const siteNav = document.querySelector('.site-nav');
-let galaxyLockTriggered = false;
+const galaxyShell = document.querySelector('.galaxy-shell');
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const warpCanvas = document.getElementById('warp-canvas');
+const warpCtx = warpCanvas?.getContext('2d');
 
-if (galaxySection) {
-  const observer = new IntersectionObserver(
-    entries => {
-      entries.forEach(entry => {
-        if (
-          entry.isIntersecting &&
-          !galaxyLockTriggered &&
-          entry.boundingClientRect.top < window.innerHeight * 0.4
-        ) {
-          galaxyLockTriggered = true;
-          const navOffset = (siteNav?.offsetHeight || 60) + 10;
-          const targetY = Math.max(galaxySection.offsetTop - navOffset, 0);
-          window.scrollTo({ top: targetY, behavior: 'smooth' });
-          observer.disconnect();
-        }
-      });
+window.addEventListener('resize', resizeWarpCanvas, { passive: true });
+resizeWarpCanvas();
+
+const galaxyDim = document.createElement('div');
+galaxyDim.className = 'galaxy-dim';
+const galaxyVignette = document.createElement('div');
+galaxyVignette.className = 'galaxy-vignette';
+if (galaxyShell) {
+  galaxyShell.appendChild(galaxyDim);
+  galaxyShell.appendChild(galaxyVignette);
+}
+
+const baseStarOpacity = {
+  far: farStars.material.opacity,
+  mid: midStars.material.opacity,
+  near: nearStars.material.opacity,
+  arms: armStarMaterial.opacity,
+  cluster: clusterMaterial.opacity
+};
+const baseTrailStrength = particleUniforms.uTrailStrength.value;
+const baseCamera = camera.position.clone();
+
+let zoomTimeline = null;
+let isGalaxyTransitioning = false;
+let warpRaf = 0;
+let warpActive = false;
+let warpLast = 0;
+let warpStreaks = [];
+const warpFx = { opacity: 0, intensity: 0 };
+
+function resizeWarpCanvas() {
+  if (!warpCanvas || !warpCtx) return;
+  const dpr = Math.min(window.devicePixelRatio, 2);
+  warpCanvas.width = window.innerWidth * dpr;
+  warpCanvas.height = window.innerHeight * dpr;
+  warpCanvas.style.width = `${window.innerWidth}px`;
+  warpCanvas.style.height = `${window.innerHeight}px`;
+  warpCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function makeStreak() {
+  return {
+    angle: Math.random() * Math.PI * 2,
+    radius: Math.pow(Math.random(), 1.7) * 70 + 4,
+    speed: THREE.MathUtils.lerp(140, 280, Math.random()),
+    length: THREE.MathUtils.lerp(16, 36, Math.random()),
+    hue: THREE.MathUtils.lerp(210, 285, Math.random()),
+    alpha: THREE.MathUtils.lerp(0.4, 0.9, Math.random())
+  };
+}
+
+function resetStreak(streak) {
+  streak.angle = Math.random() * Math.PI * 2;
+  streak.radius = Math.pow(Math.random(), 1.7) * 70 + 4;
+  streak.speed = THREE.MathUtils.lerp(140, 280, Math.random());
+  streak.length = THREE.MathUtils.lerp(16, 36, Math.random());
+  streak.hue = THREE.MathUtils.lerp(210, 285, Math.random());
+  streak.alpha = THREE.MathUtils.lerp(0.4, 0.9, Math.random());
+}
+
+function initWarpStreaks(count = 360) {
+  warpStreaks = Array.from({ length: count }, () => makeStreak());
+}
+
+function startWarp() {
+  if (!warpCanvas || !warpCtx) return;
+  warpFx.opacity = 0;
+  warpFx.intensity = 0;
+  resizeWarpCanvas();
+  if (!warpStreaks.length) initWarpStreaks();
+  warpActive = true;
+  warpLast = performance.now();
+  warpCanvas.classList.add('is-warping');
+  if (!warpRaf) warpRaf = requestAnimationFrame(warpLoop);
+}
+
+function stopWarp() {
+  warpActive = false;
+  warpRaf = 0;
+  warpFx.intensity = 0;
+  warpFx.opacity = 0;
+  warpCanvas?.classList.remove('is-warping');
+}
+
+function warpLoop(now) {
+  if (!warpActive || !warpCtx || !warpCanvas) return;
+  const dt = Math.min((now - warpLast) / 1000, 0.033);
+  warpLast = now;
+
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const cx = w * 0.5;
+  const cy = h * 0.5;
+  const maxR = Math.hypot(cx, cy);
+
+  warpCtx.clearRect(0, 0, w, h);
+  warpCtx.save();
+  warpCtx.globalAlpha = warpFx.opacity;
+
+  const glow = warpCtx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(cx, cy) * 0.65);
+  glow.addColorStop(0, 'rgba(140, 180, 255, 0.12)');
+  glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  warpCtx.fillStyle = glow;
+  warpCtx.fillRect(0, 0, w, h);
+
+  const intensity = warpFx.intensity;
+  const speedScale = 0.35 + intensity * 1.35;
+  const lengthScale = 0.65 + intensity * 1.35;
+  const lineWidth = 0.9 + intensity * 0.6;
+
+  warpCtx.lineCap = 'round';
+
+  for (let i = 0; i < warpStreaks.length; i++) {
+    const s = warpStreaks[i];
+    s.radius += s.speed * speedScale * dt;
+    const length = s.length * lengthScale;
+    if (s.radius - length > maxR) {
+      resetStreak(s);
+      continue;
+    }
+    const x1 = cx + Math.cos(s.angle) * s.radius;
+    const y1 = cy + Math.sin(s.angle) * s.radius;
+    const x0 = cx + Math.cos(s.angle) * (s.radius - length);
+    const y0 = cy + Math.sin(s.angle) * (s.radius - length);
+
+    const grad = warpCtx.createLinearGradient(x0, y0, x1, y1);
+    grad.addColorStop(0, `hsla(${s.hue + 20}, 55%, 65%, 0)`);
+    grad.addColorStop(0.6, `hsla(${s.hue}, 60%, 78%, ${0.35 * s.alpha})`);
+    grad.addColorStop(1, `hsla(${s.hue - 10}, 70%, 90%, ${0.8 * s.alpha})`);
+
+    warpCtx.strokeStyle = grad;
+    warpCtx.lineWidth = lineWidth;
+    warpCtx.beginPath();
+    warpCtx.moveTo(x0, y0);
+    warpCtx.lineTo(x1, y1);
+    warpCtx.stroke();
+  }
+
+  const vignette = warpCtx.createRadialGradient(cx, cy, Math.min(cx, cy) * 0.35, cx, cy, maxR);
+  vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
+  vignette.addColorStop(1, `rgba(0, 0, 0, ${0.45 * warpFx.opacity})`);
+  warpCtx.fillStyle = vignette;
+  warpCtx.fillRect(0, 0, w, h);
+
+  warpCtx.restore();
+  warpRaf = requestAnimationFrame(warpLoop);
+}
+
+function setExpandedState(expanded) {
+  isGalaxyExpanded = expanded;
+  document.body.classList.toggle('galaxy-expanded', expanded);
+  controls.enabled = true;
+  controls.enableZoom = true;
+  controls.enablePan = false;
+  if (!expanded && label) {
+    label.style.display = 'none';
+  }
+  if (!expanded) {
+    nearParallaxTarget.set(0, 0);
+  }
+  requestAnimationFrame(onResize);
+}
+
+function expandGalaxy() {
+  if (zoomTimeline) zoomTimeline.kill();
+  if (isGalaxyExpanded || isGalaxyTransitioning) return;
+
+  const zoomDuration = 0.55;
+  const zoomDelay = 0.07;
+
+  if (prefersReducedMotion) {
+    gsap.set(siteNav, { autoAlpha: 0, pointerEvents: 'none' });
+    gsap.to(heroCopy, { autoAlpha: 0, duration: 0.2 });
+    gsap.to(heroActions, { autoAlpha: 0, duration: 0.2 });
+    setExpandedState(true);
+    if (galaxyShell) {
+      gsap.fromTo(galaxyShell, { scale: 0.98 }, { scale: 1, duration: 0.2, ease: 'power2.out' });
+    }
+    return;
+  }
+
+  isGalaxyTransitioning = true;
+  document.body.classList.add('is-warping');
+  startWarp();
+  zoomTimeline = gsap.timeline({
+    defaults: { ease: 'power3.inOut' },
+    onComplete: () => {
+      zoomTimeline = null;
+      isGalaxyTransitioning = false;
+    }
+  });
+
+  zoomTimeline
+    // Phase 1 (0–170ms): prep
+    .set(siteNav, { autoAlpha: 0, pointerEvents: 'none' }, 0)
+    .to(heroCopy, { autoAlpha: 0, duration: 0.17 }, 0)
+    .to(heroActions, { autoAlpha: 0, filter: 'blur(6px)', duration: 0.17 }, 0.03)
+    .to(galaxyDim, { opacity: 0.5, duration: 0.28 }, 0)
+    .to(galaxyVignette, { opacity: 0.5, duration: 0.32 }, 0)
+    .to(warpCanvas, { autoAlpha: 1, duration: 0.17 }, 0.03)
+    .to(warpFx, { opacity: 1, duration: 0.17 }, 0.03)
+    .to(camera.position, {
+      z: 188,
+      y: 51,
+      duration: 0.17,
+      onUpdate: () => controls.update()
+    }, 0)
+    // Phase 2 (170–680ms): acceleration + peak
+    .to(warpFx, { intensity: 1, duration: 0.51, ease: 'power3.in' }, 0.17)
+    .to(galaxyMotion, { value: 0.18, duration: 0.32 }, 0.17)
+    .to(particleUniforms.uTrailStrength, { value: 1.45, duration: 0.51 }, 0.19)
+    .to(farStars.material, { opacity: baseStarOpacity.far * 0.55, duration: 0.51 }, 0.19)
+    .to(midStars.material, { opacity: baseStarOpacity.mid * 0.6, duration: 0.51 }, 0.19)
+    .to(nearStars.material, { opacity: baseStarOpacity.near * 0.65, duration: 0.51 }, 0.19)
+    .to(armStarMaterial, { opacity: baseStarOpacity.arms * 0.75, duration: 0.51 }, 0.19)
+    .to(clusterMaterial, { opacity: baseStarOpacity.cluster * 0.75, duration: 0.51 }, 0.19)
+    .to(camera.position, {
+      z: 120,
+      y: 48,
+      duration: 0.51,
+      ease: 'power3.inOut',
+      onUpdate: () => controls.update()
+    }, 0.19)
+    // Phase 3 (680–1100ms): decel + fullscreen reveal
+    .add(() => {
+      setExpandedState(true);
+      if (galaxyShell) gsap.set(galaxyShell, { opacity: 0, visibility: 'visible' });
+      document.body.classList.remove('is-warping');
+    }, 0.68)
+    .to(galaxyShell, { opacity: 1, duration: 0.34, ease: 'power2.out' }, 0.72)
+    .to(warpFx, { intensity: 0, duration: 0.34, ease: 'power2.out' }, 0.7)
+    .to(warpFx, { opacity: 0, duration: 0.34 }, 0.73)
+    .to(warpCanvas, { autoAlpha: 0, duration: 0.34 }, 0.73)
+    .to(particleUniforms.uTrailStrength, { value: baseTrailStrength, duration: 0.28 }, 0.7)
+    .to(galaxyDim, { opacity: 0.25, duration: 0.34 }, 0.7)
+    .to(galaxyVignette, { opacity: 0.25, duration: 0.34 }, 0.7)
+    .to(farStars.material, { opacity: baseStarOpacity.far, duration: 0.28 }, 0.7)
+    .to(midStars.material, { opacity: baseStarOpacity.mid, duration: 0.28 }, 0.7)
+    .to(nearStars.material, { opacity: baseStarOpacity.near, duration: 0.28 }, 0.7)
+    .to(armStarMaterial, { opacity: baseStarOpacity.arms, duration: 0.28 }, 0.7)
+    .to(clusterMaterial, { opacity: baseStarOpacity.cluster, duration: 0.28 }, 0.7)
+    .add(() => {
+      galaxyMotion.value = 1;
+      stopWarp();
+    }, 1.1);
+}
+
+function collapseGalaxy() {
+  if (zoomTimeline) zoomTimeline.kill();
+  if (!isGalaxyExpanded && !isGalaxyTransitioning) return;
+  isGalaxyTransitioning = true;
+  document.body.classList.add('is-warping');
+
+  if (prefersReducedMotion) {
+    setExpandedState(false);
+    gsap.set(siteNav, { autoAlpha: 1, pointerEvents: 'auto' });
+    gsap.to(heroCopy, { autoAlpha: 1, duration: 0.2 });
+    gsap.to(heroActions, { autoAlpha: 1, filter: 'blur(0px)', duration: 0.2 });
+    if (galaxyShell) {
+      gsap.to(galaxyShell, { scale: 0.98, duration: 0.2, ease: 'power2.out' });
+      gsap.set(galaxyShell, { scale: 1, delay: 0.2 });
+    }
+    document.body.classList.remove('is-warping');
+    isGalaxyTransitioning = false;
+    return;
+  }
+
+  startWarp();
+  zoomTimeline = gsap.timeline({
+    defaults: { ease: 'power3.inOut' },
+    onComplete: () => {
+      zoomTimeline = null;
+      isGalaxyTransitioning = false;
+    }
+  });
+
+  zoomTimeline
+    .to(warpCanvas, { autoAlpha: 1, duration: 0.12 }, 0)
+    .to(warpFx, { opacity: 1, duration: 0.12 }, 0)
+    .to(warpFx, { intensity: 0.75, duration: 0.2, ease: 'power2.out' }, 0.04)
+    .to(galaxyDim, { opacity: 0.5, duration: 0.18 }, 0)
+    .to(galaxyVignette, { opacity: 0.5, duration: 0.18 }, 0)
+    .to(particleUniforms.uTrailStrength, { value: 1.45, duration: 0.18 }, 0)
+    .to(camera.position, {
+      x: baseCamera.x,
+      y: baseCamera.y,
+      z: baseCamera.z,
+      duration: 0.5,
+      onUpdate: () => controls.update()
+    }, 0.05)
+    .to(warpFx, { intensity: 0, duration: 0.22, ease: 'power2.inOut' }, 0.25)
+    .to(warpFx, { opacity: 0, duration: 0.22 }, 0.25)
+    .to(warpCanvas, { autoAlpha: 0, duration: 0.22 }, 0.25)
+    .to(particleUniforms.uTrailStrength, { value: baseTrailStrength, duration: 0.25 }, 0.28)
+    .to(galaxyDim, { opacity: 0, duration: 0.25 }, 0.28)
+    .to(galaxyVignette, { opacity: 0, duration: 0.25 }, 0.28)
+    .add(() => {
+      setExpandedState(false);
+      stopWarp();
+      galaxyMotion.value = 1;
+      document.body.classList.remove('is-warping');
+    }, 0.45)
+    .to(heroCopy, { autoAlpha: 1, duration: 0.25 }, 0.48)
+    .to(heroActions, { autoAlpha: 1, filter: 'blur(0px)', duration: 0.25 }, 0.48)
+    .set(siteNav, { autoAlpha: 1, pointerEvents: 'auto' }, 0.48)
+    .to(farStars.material, { opacity: baseStarOpacity.far, duration: 0.25 }, 0.28)
+    .to(midStars.material, { opacity: baseStarOpacity.mid, duration: 0.25 }, 0.28)
+    .to(nearStars.material, { opacity: baseStarOpacity.near, duration: 0.25 }, 0.28)
+    .to(armStarMaterial, { opacity: baseStarOpacity.arms, duration: 0.25 }, 0.28)
+    .to(clusterMaterial, { opacity: baseStarOpacity.cluster, duration: 0.25 }, 0.28);
+}
+
+expandBtn?.addEventListener('click', expandGalaxy);
+viewProjectsBtn?.addEventListener('click', expandGalaxy);
+closeGalaxyBtn?.addEventListener('click', collapseGalaxy);
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && (isGalaxyExpanded || isGalaxyTransitioning)) collapseGalaxy();
+});
+
+// ========== Nav reveal after hero ==========
+const heroSection = document.querySelector('.hero-section');
+if (heroSection) {
+  const navObserver = new IntersectionObserver(
+    ([entry]) => {
+      document.body.classList.toggle('nav-visible', !entry.isIntersecting);
     },
-    { threshold: 0.35 }
+    { threshold: 0.2 }
   );
-  observer.observe(galaxySection);
+  navObserver.observe(heroSection);
 }
