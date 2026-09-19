@@ -4,208 +4,159 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>3D Galaxy Portfolio</title>
+    <title>Andy Apaez — andysh</title>
+    <meta name="description"
+        content="Andy Apaez — Computer Technology student at CUNY College of Staten Island working toward security engineering. A terminal you can actually type in, with a GUI mode for skimming." />
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2306080b'/%3E%3Ctext x='5' y='23' font-family='monospace' font-size='17' fill='%234ef08a'%3E%3E_%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Caveat:wght@600&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <script type="module" src="script.js" defer></script>
+    <script src="script.js" defer></script>
 </head>
 
-<body>
-    <nav class="site-nav">
-        <div class="nav-brand">Andy • Portfolio</div>
-        <div class="nav-links">
-            <a href="#about" class="nav-link">About</a>
-            <a href="#projects" class="nav-link">Projects</a>
-            <a href="#contact" class="nav-link">Contact</a>
-        </div>
-    </nav>
+<body data-mode="terminal" data-theme="green">
+    <div class="crt" aria-hidden="true"></div>
 
-    <main>
-        <section id="projects" class="hero-section">
-            <div class="hero-inner">
-                <div class="hero-copy">
-                    <p class="hero-eyebrow">Hi, I'm</p>
-                    <h1 class="hero-title">Andy Apaez</h1>
-                    <p class="hero-role">Student developer focused on practical software.</p>
-                    <p class="hero-subtitle">I learn by building, improve through feedback, and enjoy solving real problems.</p>
-                    <div class="hero-actions">
-                        <button class="primary-btn" id="view-projects" type="button">View Projects</button>
-                        <a class="ghost-btn" href="#about">About</a>
-                        <a class="ghost-btn" href="#contact">Contact</a>
-                    </div>
-                </div>
+    <button id="modeToggle" class="mode-toggle" type="button">GUI mode →</button>
 
-                <div class="hero-galaxy" aria-label="Projects galaxy preview">
-                    <div class="galaxy-shell">
-                        <div id="container"></div>
-                        <button class="expand-galaxy" id="expand-galaxy" type="button">Expand galaxy ✦</button>
-                        <button class="close-galaxy" id="close-galaxy" type="button" aria-label="Close full screen galaxy">Close</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <canvas id="warp-canvas" aria-hidden="true"></canvas>
-
-        <!-- floating label for hover -->
-        <div id="label" class="label"></div>
-
-        <!-- project modal -->
-        <div id="modal" class="modal" role="dialog" aria-hidden="true">
-            <header>
-                <h3 id="modal-title">Project title</h3>
-                <button class="close-btn" id="closeBtn" aria-label="Close">✕</button>
-            </header>
-
-            <p id="modal-desc">Short description of the project. Technologies and purpose.</p>
-
-            <div class="meta" id="modal-tags"></div>
-
-        <div class="modal-actions">
-            <a id="modal-demo" href="#" target="_blank" rel="noopener">
-                <button class="demo-btn">Live Demo</button>
-            </a>
-
-            <a id="modal-github" href="#" target="_blank" rel="noopener">
-                    <button class="code-btn">View Code</button>
-                </a>
-            </div>
+    <!-- ══════════════════════ TERMINAL ══════════════════════ -->
+    <main id="terminalView" class="terminal-view">
+        <!-- the room around the monitor: purely decorative -->
+        <div class="scene" aria-hidden="true">
+            <div class="wall-window"><span class="moon"></span></div>
+            <div class="desk"></div>
+            <div class="lamp-pool"></div>
+            <svg class="lamp" viewBox="0 0 160 240">
+                <defs>
+                    <linearGradient id="lampBeam" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="#ffd18a" stop-opacity="0.34" />
+                        <stop offset="1" stop-color="#ffd18a" stop-opacity="0" />
+                    </linearGradient>
+                </defs>
+                <g transform="translate(62 58) rotate(38)">
+                    <polygon class="lamp-beam" points="-22,22 22,22 95,215 -95,215" fill="url(#lampBeam)" />
+                    <polygon points="-9,-12 9,-12 24,22 -24,22" fill="#3d434c" />
+                    <ellipse cx="0" cy="22" rx="22" ry="4" fill="#ffe6b8" />
+                </g>
+                <path d="M120 230 L96 128 L62 58" fill="none" stroke="#353a42" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="96" cy="128" r="5" fill="#4a505a" />
+                <ellipse cx="120" cy="232" rx="34" ry="8" fill="#23272d" />
+                <ellipse cx="120" cy="229" rx="30" ry="5" fill="#3a4049" />
+            </svg>
+            <div class="plant"><span class="leaf"></span><span class="leaf"></span><span class="leaf"></span><span class="pot"></span></div>
+            <div class="keyboard"></div>
+            <div class="mug"><span class="steam"></span><span class="steam"></span></div>
         </div>
 
-        <section id="about" class="content-section about-section">
-            <div class="section-inner">
-                <div class="section-header">
-                    <h2>About Me</h2>
-                    <p class="section-subtitle">Hello all!! My name is Andy Apaez. I'm a high school student passionate about software development and building creative, interactive projects. I’m
-                    constantly learning new technologies and growing my skills through hands-on practice.</p>
-                </div>
+        <div class="monitor">
+            <div class="bezel">
+                <span class="sticky" aria-hidden="true">try:<br><b>help</b><br><b>coffee</b></span>
+                <div class="window">
+                    <header class="titlebar">
+                        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                        <span class="title">andy@portfolio — andysh</span>
+                        <span class="tb-right" aria-hidden="true">~/</span>
+                    </header>
 
-                <div class="about-grid">
-                    <div class="about-copy">
-                        <p>
-                            I’m passionate about creating meaningful, interactive software. Over the past few years, I’ve worked on dozens of
-                            personal projects that helped me develop strong skills in web development, cloud services, and security fundamentals. I
-                            enjoy transforming ideas into polished products, learning new technologies along the way, and constantly challenging
-                            myself to build more advanced and creative solutions.
-                        </p>
-                        <div class="focus-tags">
-                            <span class="pill">Creative coding</span>
-                            <span class="pill">Cloud &amp; Security</span>
-                            <span class="pill">Interactive UI</span>
-                            <span class="pill">Problem solving</span>
-                        </div>
-                        <div class="stats-row">
-                            <div class="stat">
-                                <span class="stat-value">2+</span>
-                                <span class="stat-label">Years coding</span>
-                            </div>
-                            <div class="stat">
-                                <span class="stat-value">40+</span>
-                                <span class="stat-label">Personal Projects Built</span>
-                            </div>
-                            <div class="stat">
-                                <span class="stat-value">∞</span>
-                                <span class="stat-label">Desire for growth</span>
-                            </div>
-                        </div>
+                    <div class="screen" id="screen">
+                        <div class="output" id="output" role="log" aria-live="polite" aria-label="Terminal output"></div>
+
+                        <form class="inputline" id="inputline" autocomplete="off">
+                            <span class="ps1" id="ps1" aria-hidden="true"></span>
+                            <span class="field">
+                                <span class="mirror" id="mirror" aria-hidden="true"></span>
+                                <input id="cmdline" type="text" autocapitalize="off" autocorrect="off" spellcheck="false"
+                                    autocomplete="off" aria-label="Type a command, then press Enter" />
+                            </span>
+                        </form>
                     </div>
 
-                    <div class="orbit-cards">
-                        <article class="orb-card">
-                            <div class="orb-glow"></div>
-                            <h3>Driven by curiosity</h3>
-                            <p>I love experimenting, breaking things, and figuring out how they work. Coding lets me turn ideas into real interactive
-                            creations, which keeps me excited to learn more.</p>
-                        </article>
-                        <article class="orb-card">
-                            <div class="orb-glow"></div>
-                            <h3>40+ and more to come projects</h3>
-                            <p>I’m constantly seeking new challenges and channeling my creativity into the projects I’ve made, as well as the many more
-                            I plan to create.</p>
-                        </article>
-                        <article class="orb-card">
-                            <div class="orb-glow"></div>
-                            <h3>Problem-Solving Mindset</h3>
-                            <p>I enjoy breaking down complex problems and turning them into simple, working solutions. Debugging and improving code is
-                            one of the things that made me fall in love with development.</p>
-                        </article>
-                    </div>
+                    <footer class="statusbar">
+                        <span><b>Tab</b> completes · <b>→</b> accepts · <b>↑ ↓</b> history · type <b>help</b></span>
+                        <span>Just skimming? <button class="link-btn" type="button" data-goto="gui">Switch to GUI</button></span>
+                    </footer>
                 </div>
             </div>
-        </section>
-
-        <section id="contact" class="content-section">
-            <div class="section-inner">
-                <div class="section-header">
-                    <h2>Contact</h2>
-                    <p class="section-subtitle">Lets get in touch!!</p>
-                </div>
-
-                <div class="contact-grid">
-                    <div class="contact-panel">
-                        <h3>Launch Something Stellar</h3>
-                        <p>
-                            Colaborate on a project, discuss ideas, or just say hi! I'm always open to new opportunities and connections.
-                        </p>
-                        <div class="contact-actions">
-                            <a class="ghost-btn" href="mailto:andy.apaez16@gmail.com">Email Me</a>
-                            <a class="ghost-btn" href="https://www.linkedin.com/in/andy-apaez" target="_blank" rel="noopener">LinkedIn</a>
-                            <a class="ghost-btn" href="https://github.com/andy-apaez" target="_blank" rel="noopener">GitHub</a>
-                        </div>
-                    </div>
-
-                    <div class="signal-cards">
-                        <article class="signal-card">
-                            <h4>Quick Links</h4>
-                            <div class="quick-links">
-                                <a class="ghost-btn" href="#certifications">Certifications</a>
-                                <a class="ghost-btn" href="https://github.com/andy-apaez?tab=repositories">Full Project List</a>
-                                <a class="ghost-btn" href="Andy Apaez Resume.pdf">Resume</a>
-                            </div>
-                        </article>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="certifications" class="content-section">
-            <div class="section-inner">
-                <div class="section-header">
-                    <h2>Certifications</h2>
-                    <p class="section-subtitle">Explore some of my Certifications!!</p>
-                </div>
-
-                <div class="cert-grid">
-                    <article class="cert-card">
-                        <div class="cert-meta">
-                            <span class="cert-year">2025</span>
-                            <span class="cert-type">Cloud</span>
-                        </div>
-                        <h3>AWS Certified Cloud Practitioner</h3>
-                        <p>I gained a strong foundation in cloud concepts, core AWS services, security principles, and how modern cloud systems
-                        operate.</p>
-                    </article>
-
-                    <article class="cert-card">
-                        <div class="cert-meta">
-                            <span class="cert-year">2025</span>
-                            <span class="cert-type">Cybersecurity</span>
-                        </div>
-                        <h3>Googles Foundations of Cybersecurity</h3>
-                        <p>I built a foundation in security concepts, network defense, incident response, and identifying vulnerabilities.</p>
-                    </article>
-
-                    <article class="cert-card">
-                        <div class="cert-meta">
-                            <span class="cert-year">2025</span>
-                            <span class="cert-type">Cybersecurity</span>
-                        </div>
-                        <h3>ISC2 CC</h3>
-                        <p>I developed a strong base in cybersecurity fundamentals, from securing networks to recognizing and mitigating threats.</p>
-                    </article>
-                </div>
-            </div>
-        </section>
+            <div class="stand" aria-hidden="true"></div>
+        </div>
     </main>
+
+    <!-- ══════════════════════ GUI ══════════════════════ -->
+    <div id="guiView" class="gui-view" hidden>
+        <header class="gui-hero">
+            <p class="eyebrow">Brooklyn, NY · aspiring security engineer</p>
+            <h1>Andy Apaez</h1>
+            <p class="lede">Computer Technology student at CUNY College of Staten Island working toward security engineering.
+                I learn by building: a QR-code menu that's still live at a restaurant, a SIEM console prototype, and now a
+                containerized threat-intelligence pipeline.</p>
+            <div class="cta-row" id="guiCta"></div>
+            <ul class="stat-strip" id="guiStats"></ul>
+        </header>
+
+        <main class="gui-main">
+            <section class="gui-section">
+                <div class="sec-head">
+                    <h2>Projects</h2>
+                    <p>Things I built to answer a question I had.</p>
+                </div>
+                <div class="card-grid" id="guiProjects"></div>
+            </section>
+
+            <section class="gui-section">
+                <div class="sec-head">
+                    <h2>Skills</h2>
+                    <p>What I reach for, grouped by where it lives.</p>
+                </div>
+                <div class="skill-grid" id="guiSkills"></div>
+            </section>
+
+            <section class="gui-section">
+                <div class="sec-head">
+                    <h2>Experience &amp; Education</h2>
+                    <p>Where I've worked and where I'm studying.</p>
+                </div>
+                <div class="card-grid" id="guiExperience"></div>
+            </section>
+
+            <section class="gui-section">
+                <div class="sec-head">
+                    <h2>Certifications</h2>
+                    <p>Earned, and one in progress.</p>
+                </div>
+                <div class="card-grid certs" id="guiCerts"></div>
+            </section>
+
+            <section class="gui-section">
+                <div class="sec-head">
+                    <h2>Get in touch</h2>
+                    <p>Open to internships, projects, collaboration, or just saying hi.</p>
+                </div>
+                <div class="cta-row" id="guiContact"></div>
+            </section>
+        </main>
+
+        <footer class="gui-footer">
+            <span>Andy Apaez</span>
+            <button class="link-btn" type="button" data-goto="terminal">← Back to the terminal</button>
+        </footer>
+    </div>
+
+    <noscript>
+        <div class="noscript">
+            <h1>Andy Apaez</h1>
+            <p>This site needs JavaScript. Here are the links that matter:</p>
+            <ul>
+                <li><a href="mailto:andy.apaez16@gmail.com">andy.apaez16@gmail.com</a></li>
+                <li><a href="https://github.com/andy-apaez">github.com/andy-apaez</a></li>
+                <li><a href="https://www.linkedin.com/in/andy-apaez">linkedin.com/in/andy-apaez</a></li>
+                <li><a href="./Andy%20Apaez%20Resume.pdf">Resume (PDF)</a></li>
+            </ul>
+        </div>
+    </noscript>
 </body>
 
 </html>

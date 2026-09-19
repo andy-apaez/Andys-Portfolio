@@ -1,1314 +1,1346 @@
-import * as THREE from 'https://unpkg.com/three@0.162.0/build/three.module.js?module';
-import { OrbitControls } from 'https://unpkg.com/three@0.162.0/examples/jsm/controls/OrbitControls.js?module';
-import gsap from 'https://cdn.skypack.dev/gsap';
+/* ═══════════════════════════════════════════════════════════
+   andysh — a portfolio that behaves like a shell
+   ═══════════════════════════════════════════════════════════ */
 
-// ========== Basic setup ==========
-const container = document.getElementById('container');
-const width = Math.max(container.clientWidth, 1);
-const height = Math.max(container.clientHeight, 1);
+const DATA = {
+    name: 'Andy Apaez',
+    user: 'guest',
+    host: 'portfolio',
+    role: 'Aspiring security engineer',
+    focus: 'security · cloud · full-stack',
+    tagline: 'Computer Technology student at CUNY College of Staten Island working toward security engineering — building detection dashboards, threat-intel pipelines, and full-stack apps people actually use.',
+    location: 'Brooklyn, NY',
+    email: 'andy.apaez16@gmail.com',
+    github: 'https://github.com/andy-apaez',
+    repos: 'https://github.com/andy-apaez?tab=repositories',
+    linkedin: 'https://www.linkedin.com/in/andy-apaez',
+    resume: 'Andy_Apaez_Resume_1 (1).pdf',
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setSize(width, height);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor(0x03030a, 0);
-container.appendChild(renderer.domElement);
+    stats: [
+        { v: '1', l: 'app live in production' },
+        { get v() { return String(DATA.projects.length); }, l: 'projects' },
+        { get v() { return String(earnedCerts().length); }, l: 'certifications' }
+    ],
 
-const scene = new THREE.Scene();
+    about: [
+        "I'm Andy, from Brooklyn, NY — a freshman at CUNY College of Staten Island studying Computer Technology (A.A.S.). My goal is to become a security engineer.",
+        "My first real project is still running: while working at Los Tacos (now Mezquilla), I built the restaurant's QR-code online menu with Node.js and MySQL, hosted on Vercel. Since then I've been pointing that build-it-yourself habit at security — a SIEM console prototype, and now a containerized threat-intelligence pipeline.",
+        "Outside of projects I practice on TryHackMe, OverTheWire Bandit, and HackTheBox, and I'm studying for CompTIA Security+. Away from the keyboard: weightlifting, Minecraft modpacks, and trading stocks as a hobby."
+    ],
 
-const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 5000);
-camera.position.set(0, 52, 200);
+    education: [
+        { school: 'College of Staten Island (CUNY)', detail: 'A.A.S. in Computer Technology · freshman, in progress' },
+        { school: 'Fort Hamilton High School', detail: 'Graduated' }
+    ],
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.06;
-controls.minDistance = 40;
-controls.maxDistance = 800;
-controls.enabled = true;
-controls.enableZoom = true;
-controls.enablePan = false;
+    experience: [
+        {
+            slug: 'bca',
+            role: 'Assistant Counselor',
+            org: 'Brooklyn Chinese-American Association',
+            dates: 'Oct 2025 – Jul 2026',
+            points: ['Assistant counselor in an afterschool program.']
+        },
+        {
+            slug: 'los-tacos',
+            role: 'Server & tech support',
+            org: 'Los Tacos (now Mezquilla)',
+            dates: 'Sep 2024 – May 2025',
+            points: [
+                'Built the restaurant\'s QR-code online menu, still live today.',
+                'Set up Uber Eats and handled online orders and the POS system.',
+                'Served tables, plus side prep, cashier work, and stocking.'
+            ]
+        }
+    ],
 
-// subtle ambient + rim light
-const ambient = new THREE.AmbientLight(0xffffff, 0.25);
-scene.add(ambient);
-const dir = new THREE.DirectionalLight(0xffffff, 0.6);
-dir.position.set(100, 50, 100);
-scene.add(dir);
+    skills: [
+        { group: 'Languages', items: ['Python', 'JavaScript / TypeScript', 'SQL', 'C++ (learning for coursework)'] },
+        { group: 'Web', items: ['Node.js', 'React', 'Vite', 'Recharts', 'MySQL', 'Vercel'] },
+        { group: 'Data & Infrastructure', items: ['Docker Compose', 'OpenSearch', 'Grafana', 'Redpanda', 'Vector'] },
+        { group: 'Cloud', items: ['AWS'] },
+        { group: 'Systems & Networking', items: ['Linux command line', 'Networking fundamentals'] },
+        { group: 'Security Practice', items: ['TryHackMe', 'OverTheWire Bandit', 'HackTheBox'] }
+    ],
 
-const spriteTexture = new THREE.TextureLoader().load(
-  'https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/sprites/spark1.png'
-);
+    projects: [
+        {
+            slug: 'mezquilla-menu',
+            name: 'Mezquilla Online Menu',
+            blurb: 'Full-stack QR-code menu still live at the restaurant.',
+            desc: 'A full-stack web app with a QR-code menu backed by a database, built for the restaurant I worked at (Los Tacos at the time, now Mezquilla). Customers scan a code at the table to browse the menu. It is still in use today.',
+            tags: ['Node.js', 'MySQL', 'Vercel'],
+            demo: 'https://wlostacos.vercel.app/',
+            code: 'https://github.com/andy-apaez/Los-Tacos'
+        },
+        {
+            slug: 'threat-intel-pipeline',
+            name: 'Threat Intelligence Pipeline',
+            status: 'in progress',
+            blurb: 'Containerized pipeline for streaming and searching threat telemetry.',
+            desc: 'A containerized data pipeline on Docker Compose: a Python service generates simulated threat telemetry, Redpanda streams it, Vector (VRL) parses and routes it into OpenSearch, and Grafana visualizes it. Next step: AI analysis of the collected data.',
+            tags: ['Python', 'Redpanda', 'Vector', 'OpenSearch', 'Grafana', 'Docker Compose'],
+            demo: null,
+            code: null
+        },
+        {
+            slug: 'siem-dashboard',
+            name: 'SIEM Console Dashboard',
+            year: '2025',
+            blurb: 'Security operations console prototype running on mock data.',
+            desc: 'A frontend prototype of a Security Information and Event Management console: alert backlogs, event streams, ingestion health, and threat-intel watchlists, all driven by mock data so the whole UI can be demonstrated offline.',
+            tags: ['React', 'TypeScript', 'Vite', 'Recharts'],
+            demo: null,
+            code: 'https://github.com/andy-apaez/SIEM-Dashboard'
+        },
+        {
+            slug: 'aws-study-guide',
+            name: 'AWS CLF-C02 Study Guide',
+            blurb: 'The study guide I wrote while preparing for Cloud Practitioner.',
+            desc: 'A study guide I put together while preparing for the AWS Certified Cloud Practitioner (CLF-C02) exam, covering core services, cloud concepts, security, and billing.',
+            tags: ['AWS', 'Cloud'],
+            demo: null,
+            code: null
+        },
+        {
+            slug: 'ai-security-career-research',
+            name: 'AI Security Engineer Career Research',
+            blurb: 'Senior career exploration project on AI security roles in NYC.',
+            desc: 'A senior career exploration project researching the AI Security Engineer role in New York City, delivered as a written portfolio and a presentation.',
+            tags: ['Research', 'Security careers'],
+            demo: null,
+            code: null
+        }
+    ],
 
-// Subtle inverted skydome with procedural star/nebula texture
-function createProceduralSkyTexture() {
-  const size = 512;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
-
-  // base fill
-  ctx.fillStyle = '#000000';
-  ctx.fillRect(0, 0, size, size);
-
-  // faint nebula gradient
-  const grad = ctx.createRadialGradient(size * 0.5, size * 0.5, size * 0.1, size * 0.5, size * 0.5, size * 0.55);
-  grad.addColorStop(0, 'rgba(255, 223, 186, 0.08)');
-  grad.addColorStop(1, 'rgba(110, 150, 255, 0.03)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, size, size);
-
-  // sparse tiny stars
-  for (let i = 0; i < 450; i++) {
-    const x = Math.random() * size;
-    const y = Math.random() * size;
-    const r = Math.random() * 1.2 + 0.2;
-    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.08})`;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  texture.needsUpdate = true;
-  return texture;
-}
-
-const skyTexture = createProceduralSkyTexture();
-const skySphere = new THREE.Mesh(
-  new THREE.SphereGeometry(1100, 48, 32),
-  new THREE.MeshBasicMaterial({
-    map: skyTexture,
-    side: THREE.BackSide,
-    transparent: true,
-    opacity: 0.07,
-    depthWrite: false,
-    depthTest: false
-  })
-);
-scene.add(skySphere);
-
-// ========== Galaxy particle field ==========
-const params = {
-  arms: 4,
-  particles: 1400,
-  radius: 230,
-  spiralTightness: 0.038,
-  randomness: 0.28,
-  randomnessPower: 1.25,
-  palette: ['#8cc5ff', '#7fa6ff', '#93d5ff', '#ffd18f']
+    certs: [
+        {
+            slug: 'aws-cloud-practitioner',
+            name: 'AWS Certified Cloud Practitioner (CLF-C02)',
+            org: 'Amazon Web Services',
+            short: 'AWS',
+            year: '2026',
+            kind: 'Cloud',
+            desc: 'Core AWS services, cloud concepts, and the security principles behind how modern cloud systems run.'
+        },
+        {
+            slug: 'google-cybersecurity',
+            name: 'Foundations of Cybersecurity',
+            org: 'Google · Coursera',
+            short: 'Google',
+            year: '2025',
+            kind: 'Security',
+            desc: 'Security fundamentals covering network defense, incident response, and identifying vulnerabilities.'
+        },
+        {
+            slug: 'comptia-security-plus',
+            name: 'CompTIA Security+',
+            org: 'CompTIA',
+            short: 'Security+',
+            year: 'In progress',
+            kind: 'Security',
+            inProgress: true,
+            desc: 'Currently studying. Exam not yet scheduled.'
+        }
+    ]
 };
 
-
-// Starfield layers: far (dim/slow), mid (default), near (bright/faster + parallax)
-function createStarLayer({ count, radius, size, opacity, color, yScale = 0.6 }) {
-  const geometry = new THREE.BufferGeometry();
-  const positions = new Float32Array(count * 3);
-  const colors = new Float32Array(count * 3);
-  const baseColor = new THREE.Color(color);
-
-  for (let i = 0; i < count; i++) {
-    const i3 = i * 3;
-    const r = Math.pow(Math.random(), 1.1) * radius;
-    const theta = Math.random() * Math.PI * 2;
-    const phi = Math.acos(2 * Math.random() - 1);
-    positions[i3 + 0] = r * Math.sin(phi) * Math.cos(theta);
-    positions[i3 + 1] = r * Math.cos(phi) * yScale;
-    positions[i3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-
-    const dim = 0.6 + Math.random() * 0.4;
-    colors[i3 + 0] = baseColor.r * dim;
-    colors[i3 + 1] = baseColor.g * dim;
-    colors[i3 + 2] = baseColor.b * dim;
-  }
-
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-  const material = new THREE.PointsMaterial({
-    size,
-    vertexColors: true,
-    transparent: true,
-    opacity,
-    depthWrite: false,
-    blending: THREE.AdditiveBlending
-  });
-
-  return new THREE.Points(geometry, material);
-}
-
-const farStars = createStarLayer({
-  count: 520,
-  radius: 1400,
-  size: 0.65,
-  opacity: 0.3,
-  color: '#6c7a91',
-  yScale: 0.55
-});
-farStars.position.y = -20;
-scene.add(farStars);
-
-const midStars = createStarLayer({
-  count: 360,
-  radius: 900,
-  size: 0.95,
-  opacity: 0.45,
-  color: '#7c8fb0',
-  yScale: 0.65
-});
-midStars.position.y = -12;
-scene.add(midStars);
-
-const nearStars = createStarLayer({
-  count: 120,
-  radius: 560,
-  size: 1.4,
-  opacity: 0.6,
-  color: '#9fc4ff',
-  yScale: 0.8
-});
-nearStars.position.y = 6;
-scene.add(nearStars);
-const nearBasePos = nearStars.position.clone();
-
-// Arm stars hugging spiral curves (extra density near arms)
-const armStarCount = 520;
-const armStarGeometry = new THREE.BufferGeometry();
-const armPositions = new Float32Array(armStarCount * 3);
-const armColors = new Float32Array(armStarCount * 3);
-const armSizes = new Float32Array(armStarCount);
-const armColorPalette = params.palette.map(c => new THREE.Color(c));
-
-for (let i = 0; i < armStarCount; i++) {
-  const i3 = i * 3;
-  const radius = Math.pow(Math.random(), 1.35) * params.radius * 0.95 + 12;
-  const arm = i % params.arms;
-  const branchAngle = (arm / params.arms) * Math.PI * 2;
-  const spinAngle = radius * params.spiralTightness * Math.PI * 2;
-  const angle = branchAngle + spinAngle;
-
-  const jitter = Math.pow(radius / params.radius, params.randomnessPower) * params.randomness;
-  const x = Math.cos(angle) * radius + (Math.random() - 0.5) * jitter * params.radius * 0.4;
-  const yRange = THREE.MathUtils.lerp(3, 18, Math.min(1, radius / params.radius));
-  const y = (Math.random() - 0.5) * yRange;
-  const z = Math.sin(angle) * radius + (Math.random() - 0.5) * jitter * params.radius * 0.4;
-
-  armPositions[i3 + 0] = x;
-  armPositions[i3 + 1] = y;
-  armPositions[i3 + 2] = z;
-
-  const cA = armColorPalette[Math.floor(Math.random() * armColorPalette.length)];
-  const cB = armColorPalette[Math.floor(Math.random() * armColorPalette.length)];
-  const mix = cA.clone().lerp(cB, Math.random() * 0.5 + 0.2);
-  armColors[i3 + 0] = mix.r;
-  armColors[i3 + 1] = mix.g;
-  armColors[i3 + 2] = mix.b;
-
-  armSizes[i] = Math.random() * 1.1 + 0.6;
-}
-
-armStarGeometry.setAttribute('position', new THREE.BufferAttribute(armPositions, 3));
-armStarGeometry.setAttribute('color', new THREE.BufferAttribute(armColors, 3));
-armStarGeometry.setAttribute('size', new THREE.BufferAttribute(armSizes, 1));
-
-const armStarMaterial = new THREE.PointsMaterial({
-  vertexColors: true,
-  size: 1.2,
-  transparent: true,
-  opacity: 0.85,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending
-});
-
-const armStars = new THREE.Points(armStarGeometry, armStarMaterial);
-armStars.position.y = -6;
-scene.add(armStars);
-
-// Clustered bright stars placed along arms
-const clusterGroup = new THREE.Group();
-const clusterCount = 4;
-let clusterTotal = 0;
-const clusterCenters = [];
-
-for (let i = 0; i < clusterCount; i++) {
-  const arm = Math.floor(Math.random() * params.arms);
-  const radius = Math.pow(Math.random(), 1.25) * params.radius * 0.9 + 10;
-  const branchAngle = (arm / params.arms) * Math.PI * 2;
-  const spinAngle = radius * params.spiralTightness * Math.PI * 2;
-  const angle = branchAngle + spinAngle;
-  const cx = Math.cos(angle) * radius + (Math.random() - 0.5) * 12;
-  const cz = Math.sin(angle) * radius + (Math.random() - 0.5) * 12;
-  const cy = (Math.random() - 0.5) * THREE.MathUtils.lerp(6, 18, Math.min(1, radius / params.radius));
-  clusterCenters.push({ x: cx, y: cy, z: cz, radius: 6 + Math.random() * 8, count: Math.floor(Math.random() * 18) + 14 });
-  clusterTotal += clusterCenters[i].count;
-}
-
-const clusterPos = new Float32Array(clusterTotal * 3);
-const clusterCol = new Float32Array(clusterTotal * 3);
-const clusterSizes = new Float32Array(clusterTotal);
-
-let cIdx = 0;
-clusterCenters.forEach(center => {
-  for (let i = 0; i < center.count; i++) {
-    const j = cIdx + i;
-    const j3 = j * 3;
-    const r = Math.random() * center.radius;
-    const t = Math.random() * Math.PI * 2;
-    const h = (Math.random() - 0.5) * center.radius * 0.45;
-    const falloff = 1 - Math.min(1, r / center.radius);
-    const posX = center.x + Math.cos(t) * r;
-    const posY = center.y + h;
-    const posZ = center.z + Math.sin(t) * r;
-
-    clusterPos[j3 + 0] = posX;
-    clusterPos[j3 + 1] = posY;
-    clusterPos[j3 + 2] = posZ;
-
-    const base = new THREE.Color('#cfe3ff').lerp(new THREE.Color('#ffffff'), 0.5 * falloff + 0.2);
-    clusterCol[j3 + 0] = base.r * (1.2 - falloff * 0.3);
-    clusterCol[j3 + 1] = base.g * (1.2 - falloff * 0.3);
-    clusterCol[j3 + 2] = base.b;
-
-    clusterSizes[j] = 0.9 + falloff * 1.4;
-  }
-  cIdx += center.count;
-});
-
-const clusterGeometry = new THREE.BufferGeometry();
-clusterGeometry.setAttribute('position', new THREE.BufferAttribute(clusterPos, 3));
-clusterGeometry.setAttribute('color', new THREE.BufferAttribute(clusterCol, 3));
-clusterGeometry.setAttribute('size', new THREE.BufferAttribute(clusterSizes, 1));
-
-const clusterMaterial = new THREE.PointsMaterial({
-  vertexColors: true,
-  size: 1.4,
-  transparent: true,
-  opacity: 0.95,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending
-});
-
-const clusterStars = new THREE.Points(clusterGeometry, clusterMaterial);
-clusterStars.position.y = -4;
-clusterGroup.add(clusterStars);
-scene.add(clusterGroup);
-
-// Huge soft particles (wide, low opacity, slight parallax)
-const softCloudParams = { count: 40, radius: 1600 };
-const softCloudGeom = new THREE.BufferGeometry();
-const softPositions = new Float32Array(softCloudParams.count * 3);
-for (let i = 0; i < softCloudParams.count; i++) {
-  const i3 = i * 3;
-  const r = Math.pow(Math.random(), 0.7) * softCloudParams.radius + 300;
-  const theta = Math.random() * Math.PI * 2;
-  const phi = Math.acos(2 * Math.random() - 1);
-  softPositions[i3 + 0] = r * Math.sin(phi) * Math.cos(theta);
-  softPositions[i3 + 1] = r * Math.cos(phi) * 0.25;
-  softPositions[i3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-}
-softCloudGeom.setAttribute('position', new THREE.BufferAttribute(softPositions, 3));
-
-const softCloudMat = new THREE.PointsMaterial({
-  map: spriteTexture,
-  size: 70,
-  sizeAttenuation: true,
-  transparent: true,
-  opacity: 0.015,
-  color: new THREE.Color('#bcd6ff'),
-  depthWrite: false,
-  blending: THREE.AdditiveBlending
-});
-
-const softClouds = new THREE.Points(softCloudGeom, softCloudMat);
-softClouds.position.y = -18;
-scene.add(softClouds);
-
-// Near-camera micro stars (fast parallax, twinkle, avoid core)
-const microCount = 40;
-const microGeom = new THREE.BufferGeometry();
-const microPos = new Float32Array(microCount * 3);
-const microPhase = new Float32Array(microCount);
-for (let i = 0; i < microCount; i++) {
-  const i3 = i * 3;
-  const radius = THREE.MathUtils.lerp(140, 320, Math.random());
-  const angle = Math.random() * Math.PI * 2;
-  const y = (Math.random() - 0.5) * THREE.MathUtils.lerp(30, 90, radius / 320);
-  microPos[i3 + 0] = Math.cos(angle) * radius;
-  microPos[i3 + 1] = y;
-  microPos[i3 + 2] = Math.sin(angle) * radius;
-  microPhase[i] = Math.random() * Math.PI * 2;
-}
-microGeom.setAttribute('position', new THREE.BufferAttribute(microPos, 3));
-microGeom.setAttribute('phase', new THREE.BufferAttribute(microPhase, 1));
-
-const microUniforms = {
-  uTime: { value: 0 },
-  uParallax: { value: new THREE.Vector2(0, 0) },
-  uSize: { value: 1.8 },
-  uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) }
-};
-
-const microVertex = /* glsl */ `
-  precision mediump float;
-  attribute float phase;
-  varying float vPhase;
-  uniform vec2 uParallax;
-  uniform float uSize;
-  uniform float uPixelRatio;
-  void main() {
-    vPhase = phase;
-    vec3 pos = position;
-    pos.x += uParallax.x * 0.6;
-    pos.y += uParallax.y * 0.35;
-    pos.z += uParallax.x * 0.7;
-    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-    gl_PointSize = uSize * uPixelRatio;
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`;
-
-const microFragment = /* glsl */ `
-  precision mediump float;
-  varying float vPhase;
-  uniform float uTime;
-  void main() {
-    vec2 uv = gl_PointCoord - 0.5;
-    float r = length(uv);
-    float soft = smoothstep(0.5, 0.0, r);
-    float twinkle = 0.7 + 0.35 * sin(uTime * 6.0 + vPhase);
-    float alpha = soft * twinkle;
-    if (alpha <= 0.02) discard;
-    gl_FragColor = vec4(vec3(1.0), alpha);
-  }
-`;
-
-const microMat = new THREE.ShaderMaterial({
-  uniforms: microUniforms,
-  vertexShader: microVertex,
-  fragmentShader: microFragment,
-  transparent: true,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending
-});
-
-const microStars = new THREE.Points(microGeom, microMat);
-scene.add(microStars);
-
-// Radial gradient overlay (warm core -> cool outer, low alpha)
-const radialGradientUniforms = {
-  uWarm: { value: new THREE.Color('#f7d7b0') },
-  uCool: { value: new THREE.Color('#6fa4ff') },
-  uIntensity: { value: 0.18 }
-};
-
-const radialGradientVertex = /* glsl */ `
-  varying vec2 vUv;
-  void main() {
-    vUv = uv;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`;
-
-const radialGradientFragment = /* glsl */ `
-  precision mediump float;
-  varying vec2 vUv;
-  uniform vec3 uWarm;
-  uniform vec3 uCool;
-  uniform float uIntensity;
-  void main() {
-    vec2 uv = vUv - 0.5;
-    float r = length(uv) * 1.4;
-    float fade = smoothstep(0.0, 0.95, r);
-    vec3 color = mix(uWarm, uCool, clamp(r * 0.9, 0.0, 1.0));
-    float alpha = (1.0 - fade) * uIntensity;
-    if (alpha <= 0.01) discard;
-    gl_FragColor = vec4(color, alpha);
-  }
-`;
-
-const radialGradientMat = new THREE.ShaderMaterial({
-  uniforms: radialGradientUniforms,
-  vertexShader: radialGradientVertex,
-  fragmentShader: radialGradientFragment,
-  transparent: true,
-  depthWrite: false,
-  depthTest: false,
-  side: THREE.DoubleSide
-});
-
-const radialGradientMesh = new THREE.Mesh(new THREE.PlaneGeometry(2000, 2000), radialGradientMat);
-radialGradientMesh.renderOrder = -5;
-scene.add(radialGradientMesh);
-
-// Buffer geometry for tiny background stars
-const geometry = new THREE.BufferGeometry();
-const positions = new Float32Array(params.particles * 3);
-const colors = new Float32Array(params.particles * 3);
-const sizes = new Float32Array(params.particles);
-const brightness = new Float32Array(params.particles);
-const starAngles = new Float32Array(params.particles);
-const starRadius = new Float32Array(params.particles);
-const starOffsetX = new Float32Array(params.particles);
-const starOffsetZ = new Float32Array(params.particles);
-const starSpeed = new Float32Array(params.particles);
-const starY = new Float32Array(params.particles);
-
-const colorPalette = params.palette.map(color => new THREE.Color(color));
-
-for (let i = 0; i < params.particles; i++) {
-  const i3 = i * 3;
-
-  let radius = Math.pow(Math.random(), 1.75) * params.radius;
-  const branch = i % params.arms;
-  const branchAngle = (branch / params.arms) * Math.PI * 2;
-  const spinAngle = radius * params.spiralTightness * Math.PI * 2;
-  const angle = branchAngle + spinAngle;
-
-  const randomnessStrength =
-    Math.pow(radius / params.radius, params.randomnessPower) * params.randomness;
-
-  const randomX =
-    (Math.random() - 0.5) * randomnessStrength * params.radius * 0.55;
-  const randomY =
-    (Math.random() - 0.5) * randomnessStrength * params.radius * 0.18;
-  const randomZ =
-    (Math.random() - 0.5) * randomnessStrength * params.radius * 0.55;
-
-  const x = Math.cos(angle) * radius + randomX;
-  const verticalRange = THREE.MathUtils.lerp(4, 26, Math.min(1, radius / params.radius));
-  const y = (Math.random() - 0.5) * verticalRange;
-  const z = Math.sin(angle) * radius + randomZ;
-
-  positions[i3 + 0] = x;
-  positions[i3 + 1] = y;
-  positions[i3 + 2] = z;
-
-  starAngles[i] = angle;
-  starRadius[i] = radius;
-  starOffsetX[i] = randomX;
-  starOffsetZ[i] = randomZ;
-  starY[i] = y;
-
-  const radialNorm = radius / params.radius;
-  starSpeed[i] = 0.02 + radialNorm * 0.05 + (Math.random() - 0.5) * 0.01;
-
-  //create a better sprial here maybe with some new partical effect (fog like or smth)
-
-  // occasional special stars (bright blue or rare red/pink clusters)
-  const special = Math.random();
-  let baseColor = colorPalette[Math.floor(Math.random() * colorPalette.length)];
-  let starSize = Math.random() * 1.5 + 0.2;
-  let starBrightness = Math.random() * 0.5 + 0.75;
-
-  if (special < 0.02) {
-    // rare red/pink cluster closer to core
-    radius *= 0.35;
-    baseColor = new THREE.Color('#ff7aa8');
-    starSize = 2.1;
-    starBrightness = 1.25;
-  } else if (special < 0.09) {
-    // occasional bright blue star
-    baseColor = new THREE.Color('#9ad7ff');
-    starSize = 2.4;
-    starBrightness = 1.4;
-  } else {
-    const colorB = colorPalette[Math.floor(Math.random() * colorPalette.length)];
-    const mixAmount = Math.random() * 0.5 + 0.25;
-    baseColor = baseColor.clone().lerp(colorB, mixAmount);
-  }
-
-  colors[i3 + 0] = baseColor.r;
-  colors[i3 + 1] = baseColor.g;
-  colors[i3 + 2] = baseColor.b;
-
-  sizes[i] = starSize;
-  brightness[i] = starBrightness;
-}
-
-geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-geometry.setAttribute('brightness', new THREE.BufferAttribute(brightness, 1));
-
-// ========== Star trail shader material ==========
-const particleUniforms = {
-  uTime: { value: 0 },
-  uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
-  uSize: { value: 1.3 },
-  uTrailStrength: { value: 1.1 },
-  uPerspective: { value: params.radius * 1.1 }
-};
-
-const particleVertexShader = /* glsl */ `
-  precision mediump float;
-
-  attribute float size;
-  attribute vec3 color;
-  attribute float brightness;
-
-  varying vec3 vColor;
-  varying float vFalloff;
-  varying float vBrightness;
-  varying float vRadial;
-
-  uniform float uPixelRatio;
-  uniform float uSize;
-  uniform float uPerspective;
-  uniform float uTime;
-
-  void main() {
-    vColor = color;
-    vBrightness = brightness;
-
-    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-    float dist = -mvPosition.z;
-    float perspective = uPerspective / max(dist, 1.0);
-    float pointSize = size * uSize * uPixelRatio * perspective;
-    gl_PointSize = max(pointSize, 1.5);
-
-    float radial = length(position.xz) / uPerspective;
-    vRadial = clamp(radial, 0.0, 1.0);
-    vFalloff = smoothstep(1.1, 0.15, radial);
-
-    gl_Position = projectionMatrix * mvPosition;
-  }
-`;
-
-const particleFragmentShader = /* glsl */ `
-  precision mediump float;
-
-  varying vec3 vColor;
-  varying float vFalloff;
-  varying float vBrightness;
-  varying float vRadial;
-  uniform float uTrailStrength;
-  uniform float uTime;
-
-  void main() {
-    // gl_PointCoord is in [0,1] range
-    vec2 uv = gl_PointCoord - 0.5;
-    // squash in one direction to fake slight elongation (trail)
-    uv.y *= uTrailStrength;
-
-    float r = length(uv) * 2.0;
-
-    // soft core falloff
-    float core = smoothstep(0.5, 0.0, r);
-    // outer glow
-    float glow = smoothstep(1.0, 0.3, r) * 0.5;
-
-    float alpha = (core + glow) * vFalloff;
-
-    if (alpha <= 0.01) discard;
-
-    float twinkle = 0.9 + 0.3 * sin(uTime * 3.0 + gl_FragCoord.x * 0.04 + gl_FragCoord.y * 0.04);
-    float brightness = vBrightness * twinkle;
-
-    vec3 warmCore = vec3(1.0, 0.92, 0.78);
-    vec3 coolOuter = vColor;
-    float coreMix = smoothstep(0.15, 0.75, 1.0 - vRadial);
-    vec3 color = mix(coolOuter, warmCore, coreMix);
-    color *= (1.15 + glow * 1.35) * brightness;
-
-    gl_FragColor = vec4(color, alpha);
-  }
-`;
-
-const particlesMaterial = new THREE.ShaderMaterial({
-  uniforms: particleUniforms,
-  vertexShader: particleVertexShader,
-  fragmentShader: particleFragmentShader,
-  transparent: true,
-  depthWrite: false,
-  blending: THREE.AdditiveBlending
-});
-
-const points = new THREE.Points(geometry, particlesMaterial);
-scene.add(points);
-
-// ========== Bright clickable stars (project anchors) ==========
-const clickableStars = [];
-const clickableGroup = new THREE.Group();
-scene.add(clickableGroup);
-
-// Example project data 
-const projects = [
-  { id: 0, name: "Los Tacos Menu", desc: "Interactive menu with slider categories & cart. Stripe + Firebase.", tags: ["React", "Firebase", "Stripe"], demo: "https://wlostacos.vercel.app/", code: "https://github.com/andy-apaez/Los-Tacos" },
-  { id: 1, name: "Interactive Curtain", desc: "This project renders a cloth-like curtain that reacts when your mouse brushes across it. Under the hood, a lightweight Verlet‑integration cloth simulation keeps a grid of particles connected by constraints, while mouse movement injects localized force to push sections of fabric aside.", tags: ["JavaScript", "HTML", "CSS"], demo: "https://example.com/demo2", code: "https://github.com/andy-apaez/interactive-curtain" },
-  { id: 2, name: "SIEM Dashboard", desc: "interactive dashboard that showcases what a modern Security Information and Event Management (SIEM) console could look like. It highlights alert backlogs, live event streams, telemetry ingestion health, and threat-intelligence watchlists. Everything is powered by mock data so the UI can be demonstrated offline.", tags: ["TypeScript","HTML","CSS","JS"], demo: "/Users/andy/Movies/TapRecord/Video/REC-20251118021927.mp4", code: "https://github.com/andy-apaez/SIEM-Dashboard" },
-  { id: 3, name: "Color Detector", desc: "A Python web app that detects the dominant colors in an uploaded image using KMeans clustering. Users can upload an image via their browser, view the image, and see a palette of the most prominent colors along with their RGB values and percentages.", tags: ["Python"], demo: "https://private-user-images.githubusercontent.com/148652039/493122293-85c05669-a101-40b4-bd6c-3582328a985e.gif?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NjM4NTQxMTcsIm5iZiI6MTc2Mzg1MzgxNywicGF0aCI6Ii8xNDg2NTIwMzkvNDkzMTIyMjkzLTg1YzA1NjY5LWExMDEtNDBiNC1iZDZjLTM1ODIzMjhhOTg1ZS5naWY_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUxMTIyJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MTEyMlQyMzIzMzdaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1lYjhkNDNiNTczYWUwZWZjYmIzNTk5OTQwYWJmZmEyNGFkZGNkNTRhMzZjYTMwNDgyYmI0OWFhYmZhZTM1ZmM4JlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.M1l7OqKkUuJBw_zrYcXHpzA3dVG3rWUKgZBi3n0Ei88", code: "https://github.com/andy-apaez/Color_detector" },
-  { id: 4, name: "Brute Force Simulator", desc: "A real-time password guessing simulator built with Python (Flask) and JavaScript. This educational tool demonstrates how brute-force and dictionary attacks work, streaming live guesses, progress, and speed directly in the browser. It helps users understand the importance of strong, complex passwords and common vulnerabilities.", tags: ["Python", "HTML", "CSS"], demo: "https://private-user-images.githubusercontent.com/148652039/483927131-89776196-8bc1-479e-b726-e087b542308e.gif?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NjM4NTUwOTAsIm5iZiI6MTc2Mzg1NDc5MCwicGF0aCI6Ii8xNDg2NTIwMzkvNDgzOTI3MTMxLTg5Nzc2MTk2LThiYzEtNDc5ZS1iNzI2LWUwODdiNTQyMzA4ZS5naWY_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjUxMTIyJTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI1MTEyMlQyMzM5NTBaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT0zMjNkMDJiZTZkMDBiMmViN2FjZGU5ZTY3MWVhYjc1ZmIxNzZkZDhmMDYwNDY3MGI0ZGZlZjNiOGE4M2E4NGZjJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.kAxCv_p3GFf0bAtYRLyahWkFH1-XrQkTJqH8l0_89Vg", code: "https://github.com/andy-apaez/Brute-Force-Simulator" }
+const earnedCerts = () => DATA.certs.filter(c => !c.inProgress);
+
+const BANNER = [
+    ' ███  █   █ ████  █   █',
+    '█   █ ██  █ █   █  █ █ ',
+    '█████ █ █ █ █   █   █  ',
+    '█   █ █  ██ █   █   █  ',
+    '█   █ █   █ ████    █  ',
+    '',
+    ' ███  ████   ███  █████ █████',
+    '█   █ █   █ █   █ █        █ ',
+    '█████ ████  █████ ████    █  ',
+    '█   █ █     █   █ █      █   ',
+    '█   █ █     █   █ █████ █████'
+].join('\n');
+
+const FORTUNES = [
+    'Weeks of coding can save you hours of planning.',
+    'There are two hard things in software: naming, cache invalidation, and off-by-one errors.',
+    'It works on my machine is a deployment strategy, technically.',
+    'The best debugger ever made is a well-placed console.log.',
+    'Your password is probably in a wordlist somewhere. Just saying.',
+    'Commit messages are letters to a future stranger who is also you.',
+    'Every project is a learning project if you never finish it.'
 ];
 
-// Decide positions for clickable stars along spiral — choose t values
-const featuredProjects = projects.slice(0, 4);
-const anchorCount = featuredProjects.length;
-for (let i = 0; i < anchorCount; i++) {
-  const frac = i / anchorCount;
-  const arm = i % params.arms;
-  const tRadius = (0.12 + frac * 0.9) * params.radius;
-  const angle =
-    (arm / params.arms) * Math.PI * 2 +
-    tRadius * params.spiralTightness * Math.PI * 2 * 0.9;
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const rx = Math.cos(angle) * tRadius + (Math.random() - 0.5) * 12;
-  const rz = Math.sin(angle) * tRadius + (Math.random() - 0.5) * 12;
-  const ry = (Math.random() - 0.5) * 10;
+/* ═══════════════════════ virtual filesystem ═══════════════════════ */
 
-  const starGeom = new THREE.SphereGeometry(3.2, 12, 8);
-  const starMat = new THREE.MeshStandardMaterial({
-    emissive: new THREE.Color(0xfff0c0),
-    emissiveIntensity: 1,
-    color: 0xfff7e8,
-    metalness: 0.1,
-    roughness: 0.2
-  });
-  const starMesh = new THREE.Mesh(starGeom, starMat);
-  starMesh.position.set(rx, ry, rz);
-  starMesh.userData.baseY = ry; 
-  starMesh.userData.projectId = featuredProjects[i].id;
+const txt = (lines) => ({ type: 'file', render: () => lines });
 
-  // flare sprite (glow)
-  const spriteMat = new THREE.SpriteMaterial({
-    map: spriteTexture,
-    color: 0xfff1c1,
-    transparent: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false
-  });
-  const sprite = new THREE.Sprite(spriteMat);
-  sprite.scale.set(28, 28, 1);
-  sprite.position.set(0, 0, 0);
-  starMesh.add(sprite);
-
-  clickableGroup.add(starMesh);
-  clickableStars.push(starMesh);
-
-  // subtle pop-in animation with gsap
-  starMesh.scale.set(0.001, 0.001, 0.001);
-  gsap.to(starMesh.scale, {
-    x: 1,
-    y: 1,
-    z: 1,
-    duration: 0.8,
-    delay: i * 0.08,
-    ease: 'back.out(1.5)'
-  });
-
-  // pulsing emissive
-  gsap.to(starMat, {
-    emissiveIntensity: 1.8,
-    duration: 1.6,
-    repeat: -1,
-    yoyo: true,
-    ease: 'sine.inOut',
-    delay: i * 0.12
-  });
-}
-
-clickableGroup.rotation.y = 0;
-
-// add shooting stars and stuff for a more emmersive feel, but disable for now (math isnt mathing right now)
-
-// ========== Raycaster for hover + click ==========
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-const followTargetWorld = new THREE.Vector3();
-const followCameraPos = new THREE.Vector3();
-let activeFollow = null;
-const nearParallax = new THREE.Vector2(0, 0);
-const nearParallaxTarget = new THREE.Vector2(0, 0);
-const galaxyMotion = { value: 1 };
-
-let hovered = null;
-const label = document.getElementById('label');
-let prevHover = null;
-let isGalaxyExpanded = false;
-
-function updatePointerFromEvent(event) {
-  const rect = renderer.domElement.getBoundingClientRect();
-  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-   const nx = (event.clientX / window.innerWidth - 0.5) * 2;
-   const ny = (event.clientY / window.innerHeight - 0.5) * 2;
-   nearParallaxTarget.set(nx * 9, -ny * 7);
-}
-
-function onPointerMove(event) {
-  updatePointerFromEvent(event);
-
-  raycaster.setFromCamera(pointer, camera);
-  const intersects = raycaster.intersectObjects(clickableStars, false);
-
-  if (intersects.length > 0) {
-    const obj = intersects[0].object;
-    if (hovered !== obj) {
-      if (prevHover && prevHover.material) {
-        gsap.to(prevHover.material, { emissiveIntensity: 1, duration: 0.2, ease: 'sine.out' });
-        if (prevHover.children[0]) gsap.to(prevHover.children[0].scale, { x: 28, y: 28, duration: 0.2, ease: 'sine.out' });
-      }
-      hovered = obj;
-      prevHover = obj;
-      gsap.to(obj.material, { emissiveIntensity: 2.4, duration: 0.25, ease: 'sine.out' });
-      if (obj.children[0]) gsap.to(obj.children[0].scale, { x: 34, y: 34, duration: 0.25, ease: 'sine.out' });
-      const proj =
-        projects.find(p => p.id === obj.userData.projectId) || {};
-      label.style.display = 'block';
-      label.textContent = proj.name || 'Project';
+const root = {
+    type: 'dir',
+    children: {
+        'about.txt': txt(DATA.about.map(p => ({ text: p, cls: 'blk' }))),
+        'skills.txt': { type: 'file', render: () => skillLines() },
+        'experience.txt': { type: 'file', render: () => experienceLines() },
+        'education.txt': { type: 'file', render: () => educationLines() },
+        'contact.txt': { type: 'file', render: () => contactLines() },
+        'resume.pdf': { type: 'file', render: () => resumeLines() },
+        'projects': {
+            type: 'dir',
+            children: Object.fromEntries(DATA.projects.map(p => [p.slug, {
+                type: 'dir',
+                children: { 'README.md': { type: 'file', render: () => projectLines(p) } }
+            }]))
+        },
+        'certs': {
+            type: 'dir',
+            children: Object.fromEntries(DATA.certs.map(c => [`${c.slug}.txt`, {
+                type: 'file',
+                render: () => certLines(c)
+            }]))
+        },
+        '.hidden_talents': {
+            type: 'file',
+            hidden: true,
+            render: () => [
+                { text: "You found the hidden file. Respect." },
+                { text: '' },
+                { text: '  · Can name every AWS service that sounds fake but is real' },
+                { text: '  · Has a Minecraft modpack running somewhere, probably' },
+                { text: '  · Checks the stock market between sets at the gym' },
+                { text: '', cls: 'blk' },
+                { html: `Try <span class="acc">sudo hire andy</span> next.`, cls: 'blk' }
+            ]
+        }
     }
-    label.style.left = event.clientX + 'px';
-    label.style.top = event.clientY - 24 + 'px';
-  } else {
-    if (prevHover && prevHover.material) {
-      gsap.to(prevHover.material, { emissiveIntensity: 1.4, duration: 0.25, ease: 'sine.out' });
-      if (prevHover.children[0]) gsap.to(prevHover.children[0].scale, { x: 28, y: 28, duration: 0.25, ease: 'sine.out' });
-    }
-    hovered = null;
-    label.style.display = 'none';
-  }
-}
-
-function onClick(event) {
-  updatePointerFromEvent(event);
-
-  raycaster.setFromCamera(pointer, camera);
-  const intersects = raycaster.intersectObjects(clickableStars, false);
-
-  if (intersects.length > 0) {
-    const obj = intersects[0].object;
-    const projId = obj.userData.projectId;
-    obj.userData.pauseUntil = clock.getElapsedTime() + 1.2;
-    openProjectModal(projId, obj);
-  }
-}
-
-renderer.domElement.addEventListener('pointermove', onPointerMove);
-renderer.domElement.addEventListener('click', onClick);
-
-// ========== Modal logic ==========
-const modal = document.getElementById('modal');
-const modalTitle = document.getElementById('modal-title');
-const modalDesc = document.getElementById('modal-desc');
-const modalTags = document.getElementById('modal-tags');
-const modalDemo = document.getElementById('modal-demo');
-const modalGit = document.getElementById('modal-github');
-const closeBtn = document.getElementById('closeBtn');
-
-function openProjectModal(id, starObj) {
-  const proj = projects.find(p => p.id === id);
-  if (!proj) return;
-
-  modalTitle.textContent = proj.name;
-  modalDesc.textContent = proj.desc;
-  modalDemo.href = proj.demo || '#';
-  modalGit.href = proj.code || '#';
-
-  modalTags.innerHTML = '';
-  (proj.tags || []).forEach(t => {
-    const el = document.createElement('div');
-    el.className = 'tag';
-    el.textContent = t;
-    modalTags.appendChild(el);
-  });
-
-  modal.classList.add('open');
-  modal.setAttribute('aria-hidden', 'false');
-
-  // animate camera to focus on the clicked star  
-  const targetPos = starObj.getWorldPosition(new THREE.Vector3());
-
-  gsap.to(controls.target, {
-    x: targetPos.x,
-    y: targetPos.y,
-    z: targetPos.z,
-    duration: 0.9,
-    ease: 'power2.inOut',
-    onUpdate: () => controls.update()
-  });
-
-  const offset = new THREE.Vector3(35, 20, 35);
-  const camTarget = targetPos.clone().add(offset);
-
-  activeFollow = {
-    star: starObj,
-    offset: offset.clone(),
-    enabled: false
-  };
-
-  gsap.to(camera.position, {
-    x: camTarget.x,
-    y: camTarget.y,
-    z: camTarget.z,
-    duration: 0.9,
-    ease: 'power2.inOut',
-    onUpdate: () => controls.update(),
-    onComplete: () => {
-      if (activeFollow && activeFollow.star === starObj) {
-        activeFollow.enabled = true;
-      }
-    }
-  });
-}
-
-function closeModal() {
-  modal.classList.remove('open');
-  modal.setAttribute('aria-hidden', 'true');
-  activeFollow = null;
-
-  // gently reset camera  *** CHANGED to sync with controls
-  gsap.to(camera.position, {
-    x: 0,
-    y: 52,
-    z: 200,
-    duration: 0.9,
-    ease: 'power2.inOut',
-    onUpdate: () => controls.update()
-  });
-  gsap.to(controls.target, {
-    x: 0,
-    y: 0,
-    z: 0,
-    duration: 0.9,
-    ease: 'power2.inOut',
-    onUpdate: () => controls.update()
-  });
-}
-
-closeBtn.addEventListener('click', closeModal);
-window.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeModal();
-});
-
-// ========== Animation loop ==========
-const clock = new THREE.Clock();
-
-function animate() {
-  const elapsed = clock.getElapsedTime();
-
-  particleUniforms.uTime.value = elapsed;
-
-  points.rotation.y = elapsed * 0.006 * galaxyMotion.value;
-  clickableGroup.rotation.y = elapsed * 0.004 * galaxyMotion.value;
-  skySphere.rotation.y = elapsed * 0.0002 * galaxyMotion.value;
-  farStars.rotation.y = elapsed * 0.0004 * galaxyMotion.value;
-  midStars.rotation.y = elapsed * 0.0008 * galaxyMotion.value;
-  nearStars.rotation.y = elapsed * 0.0011 * galaxyMotion.value;
-  armStars.rotation.y = elapsed * 0.001 * galaxyMotion.value;
-  clusterGroup.rotation.y = elapsed * 0.0012 * galaxyMotion.value;
-  softClouds.rotation.y = elapsed * 0.0005 * galaxyMotion.value;
-
-  nearParallax.lerp(nearParallaxTarget, 0.06);
-  nearStars.position.x = THREE.MathUtils.lerp(nearStars.position.x, nearBasePos.x + nearParallax.x, 0.08);
-  nearStars.position.y = THREE.MathUtils.lerp(nearStars.position.y, nearBasePos.y + nearParallax.y * 0.3, 0.08);
-  nearStars.position.z = THREE.MathUtils.lerp(nearStars.position.z, nearBasePos.z + nearParallax.x * 0.3, 0.08);
-  softClouds.position.x = THREE.MathUtils.lerp(softClouds.position.x, nearParallax.x * 8, 0.05);
-  softClouds.position.z = THREE.MathUtils.lerp(softClouds.position.z, nearParallax.x * 6, 0.05);
-  microUniforms.uParallax.value.lerp(nearParallaxTarget, 0.12);
-  microUniforms.uTime.value = elapsed;
-
-  radialGradientMesh.lookAt(camera.position);
-  if (activeFollow && activeFollow.enabled) {
-    activeFollow.star.getWorldPosition(followTargetWorld);
-    followCameraPos.copy(followTargetWorld).add(activeFollow.offset);
-    controls.target.lerp(followTargetWorld, 0.08);
-    camera.position.lerp(followCameraPos, 0.08);
-  }
-
-  // small floating motion on clickable stars (no drift)  *** CHANGED
-  clickableStars.forEach((s, idx) => {
-    const pauseUntil = s.userData?.pauseUntil;
-    const isPaused = pauseUntil && elapsed < pauseUntil;
-    const baseY = s.userData.baseY;
-    if (!isPaused) {
-      s.position.y = baseY + Math.sin(elapsed * 0.6 + idx) * 0.7;
-    }
-  });
-
-  // (Comet animation removed for now)
-
-  // update galaxy star positions with per-star speed and radial falloff
-  const posArray = geometry.attributes.position.array;
-  const camDist = camera.position.length();
-  const radialScale = 1 + Math.min(Math.max((camDist - 200) / 260, 0), 1) * 0.18; // zoom adds subtle arm separation
-  for (let i = 0; i < params.particles; i++) {
-    const i3 = i * 3;
-    const theta = starAngles[i] + elapsed * starSpeed[i] * galaxyMotion.value;
-    const r = starRadius[i] * radialScale;
-    posArray[i3 + 0] = Math.cos(theta) * r + starOffsetX[i];
-    posArray[i3 + 1] = starY[i];
-    posArray[i3 + 2] = Math.sin(theta) * r + starOffsetZ[i];
-  }
-  geometry.attributes.position.needsUpdate = true;
-
-  controls.update();
-  renderer.render(scene, camera);
-  requestAnimationFrame(animate);
-}
-animate();
-
-// ========== Responsive ==========
-function onResize() {
-  const w = Math.max(container.clientWidth, 1);
-  const h = Math.max(container.clientHeight, 1);
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  microUniforms.uPixelRatio.value = Math.min(window.devicePixelRatio, 2);
-}
-window.addEventListener('resize', onResize, { passive: true });
-requestAnimationFrame(onResize);
-
-if (window.ResizeObserver) {
-  const ro = new ResizeObserver(() => onResize());
-  ro.observe(container);
-}
-
-// adjust particle size for small screens
-if (window.innerWidth < 700) {
-  particleUniforms.uSize.value = 0.9; 
-}
-
-// ========== Galaxy expand/collapse ==========
-const expandBtn = document.getElementById('expand-galaxy');
-const closeGalaxyBtn = document.getElementById('close-galaxy');
-const viewProjectsBtn = document.getElementById('view-projects');
-const heroCopy = document.querySelector('.hero-copy');
-const heroActions = document.querySelector('.hero-actions');
-const siteNav = document.querySelector('.site-nav');
-const galaxyShell = document.querySelector('.galaxy-shell');
-const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const warpCanvas = document.getElementById('warp-canvas');
-const warpCtx = warpCanvas?.getContext('2d');
-
-window.addEventListener('resize', resizeWarpCanvas, { passive: true });
-resizeWarpCanvas();
-
-const galaxyDim = document.createElement('div');
-galaxyDim.className = 'galaxy-dim';
-const galaxyVignette = document.createElement('div');
-galaxyVignette.className = 'galaxy-vignette';
-if (galaxyShell) {
-  galaxyShell.appendChild(galaxyDim);
-  galaxyShell.appendChild(galaxyVignette);
-}
-
-const baseStarOpacity = {
-  far: farStars.material.opacity,
-  mid: midStars.material.opacity,
-  near: nearStars.material.opacity,
-  arms: armStarMaterial.opacity,
-  cluster: clusterMaterial.opacity
 };
-const baseTrailStrength = particleUniforms.uTrailStrength.value;
-const baseCamera = camera.position.clone();
 
-let zoomTimeline = null;
-let isGalaxyTransitioning = false;
-let warpRaf = 0;
-let warpActive = false;
-let warpLast = 0;
-let warpStreaks = [];
-const warpFx = { opacity: 0, intensity: 0 };
+let cwd = [];
 
-function resizeWarpCanvas() {
-  if (!warpCanvas || !warpCtx) return;
-  const dpr = Math.min(window.devicePixelRatio, 2);
-  warpCanvas.width = window.innerWidth * dpr;
-  warpCanvas.height = window.innerHeight * dpr;
-  warpCanvas.style.width = `${window.innerWidth}px`;
-  warpCanvas.style.height = `${window.innerHeight}px`;
-  warpCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-
-function makeStreak() {
-  return {
-    angle: Math.random() * Math.PI * 2,
-    radius: Math.pow(Math.random(), 1.7) * 70 + 4,
-    speed: THREE.MathUtils.lerp(140, 280, Math.random()),
-    length: THREE.MathUtils.lerp(16, 36, Math.random()),
-    hue: THREE.MathUtils.lerp(210, 285, Math.random()),
-    alpha: THREE.MathUtils.lerp(0.4, 0.9, Math.random())
-  };
-}
-
-function resetStreak(streak) {
-  streak.angle = Math.random() * Math.PI * 2;
-  streak.radius = Math.pow(Math.random(), 1.7) * 70 + 4;
-  streak.speed = THREE.MathUtils.lerp(140, 280, Math.random());
-  streak.length = THREE.MathUtils.lerp(16, 36, Math.random());
-  streak.hue = THREE.MathUtils.lerp(210, 285, Math.random());
-  streak.alpha = THREE.MathUtils.lerp(0.4, 0.9, Math.random());
-}
-
-function initWarpStreaks(count = 360) {
-  warpStreaks = Array.from({ length: count }, () => makeStreak());
-}
-
-function startWarp() {
-  if (!warpCanvas || !warpCtx) return;
-  warpFx.opacity = 0;
-  warpFx.intensity = 0;
-  resizeWarpCanvas();
-  if (!warpStreaks.length) initWarpStreaks();
-  warpActive = true;
-  warpLast = performance.now();
-  warpCanvas.classList.add('is-warping');
-  if (!warpRaf) warpRaf = requestAnimationFrame(warpLoop);
-}
-
-function stopWarp() {
-  warpActive = false;
-  warpRaf = 0;
-  warpFx.intensity = 0;
-  warpFx.opacity = 0;
-  warpCanvas?.classList.remove('is-warping');
-}
-
-function warpLoop(now) {
-  if (!warpActive || !warpCtx || !warpCanvas) return;
-  const dt = Math.min((now - warpLast) / 1000, 0.033);
-  warpLast = now;
-
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  const cx = w * 0.5;
-  const cy = h * 0.5;
-  const maxR = Math.hypot(cx, cy);
-
-  warpCtx.clearRect(0, 0, w, h);
-  warpCtx.save();
-  warpCtx.globalAlpha = warpFx.opacity;
-
-  const glow = warpCtx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(cx, cy) * 0.65);
-  glow.addColorStop(0, 'rgba(140, 180, 255, 0.12)');
-  glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  warpCtx.fillStyle = glow;
-  warpCtx.fillRect(0, 0, w, h);
-
-  const intensity = warpFx.intensity;
-  const speedScale = 0.35 + intensity * 1.35;
-  const lengthScale = 0.65 + intensity * 1.35;
-  const lineWidth = 0.9 + intensity * 0.6;
-
-  warpCtx.lineCap = 'round';
-
-  for (let i = 0; i < warpStreaks.length; i++) {
-    const s = warpStreaks[i];
-    s.radius += s.speed * speedScale * dt;
-    const length = s.length * lengthScale;
-    if (s.radius - length > maxR) {
-      resetStreak(s);
-      continue;
+function nodeAt(segs) {
+    let node = root;
+    for (const seg of segs) {
+        if (node.type !== 'dir' || !node.children[seg]) return null;
+        node = node.children[seg];
     }
-    const x1 = cx + Math.cos(s.angle) * s.radius;
-    const y1 = cy + Math.sin(s.angle) * s.radius;
-    const x0 = cx + Math.cos(s.angle) * (s.radius - length);
-    const y0 = cy + Math.sin(s.angle) * (s.radius - length);
-
-    const grad = warpCtx.createLinearGradient(x0, y0, x1, y1);
-    grad.addColorStop(0, `hsla(${s.hue + 20}, 55%, 65%, 0)`);
-    grad.addColorStop(0.6, `hsla(${s.hue}, 60%, 78%, ${0.35 * s.alpha})`);
-    grad.addColorStop(1, `hsla(${s.hue - 10}, 70%, 90%, ${0.8 * s.alpha})`);
-
-    warpCtx.strokeStyle = grad;
-    warpCtx.lineWidth = lineWidth;
-    warpCtx.beginPath();
-    warpCtx.moveTo(x0, y0);
-    warpCtx.lineTo(x1, y1);
-    warpCtx.stroke();
-  }
-
-  const vignette = warpCtx.createRadialGradient(cx, cy, Math.min(cx, cy) * 0.35, cx, cy, maxR);
-  vignette.addColorStop(0, 'rgba(0, 0, 0, 0)');
-  vignette.addColorStop(1, `rgba(0, 0, 0, ${0.45 * warpFx.opacity})`);
-  warpCtx.fillStyle = vignette;
-  warpCtx.fillRect(0, 0, w, h);
-
-  warpCtx.restore();
-  warpRaf = requestAnimationFrame(warpLoop);
+    return node;
 }
 
-function setExpandedState(expanded) {
-  isGalaxyExpanded = expanded;
-  document.body.classList.toggle('galaxy-expanded', expanded);
-  controls.enabled = true;
-  controls.enableZoom = true;
-  controls.enablePan = false;
-  if (!expanded && label) {
-    label.style.display = 'none';
-  }
-  if (!expanded) {
-    nearParallaxTarget.set(0, 0);
-  }
-  requestAnimationFrame(onResize);
+function resolvePath(input) {
+    let segs;
+    let parts;
+    const raw = input.trim();
+
+    if (raw === '' ) return { segs: cwd.slice(), node: nodeAt(cwd) };
+    if (raw === '~' || raw === '/') return { segs: [], node: root };
+
+    if (raw.startsWith('~/')) { segs = []; parts = raw.slice(2).split('/'); }
+    else if (raw.startsWith('/')) { segs = []; parts = raw.slice(1).split('/'); }
+    else { segs = cwd.slice(); parts = raw.split('/'); }
+
+    for (const part of parts) {
+        if (!part || part === '.') continue;
+        if (part === '..') { segs.pop(); continue; }
+        segs.push(part);
+    }
+
+    const node = nodeAt(segs);
+    return node ? { segs, node } : null;
 }
 
-function expandGalaxy() {
-  if (zoomTimeline) zoomTimeline.kill();
-  if (isGalaxyExpanded || isGalaxyTransitioning) return;
+const pathLabel = (segs) => segs.length ? `~/${segs.join('/')}` : '~';
 
-  const zoomDuration = 0.55;
-  const zoomDelay = 0.07;
+/* ═══════════════════════ dom + printing ═══════════════════════ */
 
-  if (prefersReducedMotion) {
-    gsap.set(siteNav, { autoAlpha: 0, pointerEvents: 'none' });
-    gsap.to(heroCopy, { autoAlpha: 0, duration: 0.2 });
-    gsap.to(heroActions, { autoAlpha: 0, duration: 0.2 });
-    setExpandedState(true);
-    if (galaxyShell) {
-      gsap.fromTo(galaxyShell, { scale: 0.98 }, { scale: 1, duration: 0.2, ease: 'power2.out' });
-    }
-    return;
-  }
+const screen = document.getElementById('screen');
+const output = document.getElementById('output');
+const mirror = document.getElementById('mirror');
+const ps1El = document.getElementById('ps1');
+const input = document.getElementById('cmdline');
+const form = document.getElementById('inputline');
+const toggle = document.getElementById('modeToggle');
 
-  isGalaxyTransitioning = true;
-  document.body.classList.add('is-warping');
-  startWarp();
-  zoomTimeline = gsap.timeline({
-    defaults: { ease: 'power3.inOut' },
-    onComplete: () => {
-      zoomTimeline = null;
-      isGalaxyTransitioning = false;
-    }
-  });
+const esc = (s) => String(s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-  zoomTimeline
-    // Phase 1 (0–170ms): prep
-    .set(siteNav, { autoAlpha: 0, pointerEvents: 'none' }, 0)
-    .to(heroCopy, { autoAlpha: 0, duration: 0.17 }, 0)
-    .to(heroActions, { autoAlpha: 0, filter: 'blur(6px)', duration: 0.17 }, 0.03)
-    .to(galaxyDim, { opacity: 0.5, duration: 0.28 }, 0)
-    .to(galaxyVignette, { opacity: 0.5, duration: 0.32 }, 0)
-    .to(warpCanvas, { autoAlpha: 1, duration: 0.17 }, 0.03)
-    .to(warpFx, { opacity: 1, duration: 0.17 }, 0.03)
-    .to(camera.position, {
-      z: 188,
-      y: 51,
-      duration: 0.17,
-      onUpdate: () => controls.update()
-    }, 0)
-    // Phase 2 (170–680ms): acceleration + peak
-    .to(warpFx, { intensity: 1, duration: 0.51, ease: 'power3.in' }, 0.17)
-    .to(galaxyMotion, { value: 0.18, duration: 0.32 }, 0.17)
-    .to(particleUniforms.uTrailStrength, { value: 1.45, duration: 0.51 }, 0.19)
-    .to(farStars.material, { opacity: baseStarOpacity.far * 0.55, duration: 0.51 }, 0.19)
-    .to(midStars.material, { opacity: baseStarOpacity.mid * 0.6, duration: 0.51 }, 0.19)
-    .to(nearStars.material, { opacity: baseStarOpacity.near * 0.65, duration: 0.51 }, 0.19)
-    .to(armStarMaterial, { opacity: baseStarOpacity.arms * 0.75, duration: 0.51 }, 0.19)
-    .to(clusterMaterial, { opacity: baseStarOpacity.cluster * 0.75, duration: 0.51 }, 0.19)
-    .to(camera.position, {
-      z: 120,
-      y: 48,
-      duration: 0.51,
-      ease: 'power3.inOut',
-      onUpdate: () => controls.update()
-    }, 0.19)
-    // Phase 3 (680–1100ms): decel + fullscreen reveal
-    .add(() => {
-      setExpandedState(true);
-      if (galaxyShell) gsap.set(galaxyShell, { opacity: 0, visibility: 'visible' });
-      document.body.classList.remove('is-warping');
-    }, 0.68)
-    .to(galaxyShell, { opacity: 1, duration: 0.34, ease: 'power2.out' }, 0.72)
-    .to(warpFx, { intensity: 0, duration: 0.34, ease: 'power2.out' }, 0.7)
-    .to(warpFx, { opacity: 0, duration: 0.34 }, 0.73)
-    .to(warpCanvas, { autoAlpha: 0, duration: 0.34 }, 0.73)
-    .to(particleUniforms.uTrailStrength, { value: baseTrailStrength, duration: 0.28 }, 0.7)
-    .to(galaxyDim, { opacity: 0.25, duration: 0.34 }, 0.7)
-    .to(galaxyVignette, { opacity: 0.25, duration: 0.34 }, 0.7)
-    .to(farStars.material, { opacity: baseStarOpacity.far, duration: 0.28 }, 0.7)
-    .to(midStars.material, { opacity: baseStarOpacity.mid, duration: 0.28 }, 0.7)
-    .to(nearStars.material, { opacity: baseStarOpacity.near, duration: 0.28 }, 0.7)
-    .to(armStarMaterial, { opacity: baseStarOpacity.arms, duration: 0.28 }, 0.7)
-    .to(clusterMaterial, { opacity: baseStarOpacity.cluster, duration: 0.28 }, 0.7)
-    .add(() => {
-      galaxyMotion.value = 1;
-      stopWarp();
-    }, 1.1);
+const sleep = (ms) => new Promise(r => setTimeout(r, reduceMotion ? 0 : ms));
+
+let busy = false;
+let abort = false;
+
+function append(html, cls = '') {
+    const el = document.createElement('div');
+    if (cls) el.className = cls;
+    el.innerHTML = html;
+    output.appendChild(el);
+    scrollDown();
+    return el;
 }
 
-function collapseGalaxy() {
-  if (zoomTimeline) zoomTimeline.kill();
-  if (!isGalaxyExpanded && !isGalaxyTransitioning) return;
-  isGalaxyTransitioning = true;
-  document.body.classList.add('is-warping');
-
-  if (prefersReducedMotion) {
-    setExpandedState(false);
-    gsap.set(siteNav, { autoAlpha: 1, pointerEvents: 'auto' });
-    gsap.to(heroCopy, { autoAlpha: 1, duration: 0.2 });
-    gsap.to(heroActions, { autoAlpha: 1, filter: 'blur(0px)', duration: 0.2 });
-    if (galaxyShell) {
-      gsap.to(galaxyShell, { scale: 0.98, duration: 0.2, ease: 'power2.out' });
-      gsap.set(galaxyShell, { scale: 1, delay: 0.2 });
-    }
-    document.body.classList.remove('is-warping');
-    isGalaxyTransitioning = false;
-    return;
-  }
-
-  startWarp();
-  zoomTimeline = gsap.timeline({
-    defaults: { ease: 'power3.inOut' },
-    onComplete: () => {
-      zoomTimeline = null;
-      isGalaxyTransitioning = false;
-    }
-  });
-
-  zoomTimeline
-    .to(warpCanvas, { autoAlpha: 1, duration: 0.12 }, 0)
-    .to(warpFx, { opacity: 1, duration: 0.12 }, 0)
-    .to(warpFx, { intensity: 0.75, duration: 0.2, ease: 'power2.out' }, 0.04)
-    .to(galaxyDim, { opacity: 0.5, duration: 0.18 }, 0)
-    .to(galaxyVignette, { opacity: 0.5, duration: 0.18 }, 0)
-    .to(particleUniforms.uTrailStrength, { value: 1.45, duration: 0.18 }, 0)
-    .to(camera.position, {
-      x: baseCamera.x,
-      y: baseCamera.y,
-      z: baseCamera.z,
-      duration: 0.5,
-      onUpdate: () => controls.update()
-    }, 0.05)
-    .to(warpFx, { intensity: 0, duration: 0.22, ease: 'power2.inOut' }, 0.25)
-    .to(warpFx, { opacity: 0, duration: 0.22 }, 0.25)
-    .to(warpCanvas, { autoAlpha: 0, duration: 0.22 }, 0.25)
-    .to(particleUniforms.uTrailStrength, { value: baseTrailStrength, duration: 0.25 }, 0.28)
-    .to(galaxyDim, { opacity: 0, duration: 0.25 }, 0.28)
-    .to(galaxyVignette, { opacity: 0, duration: 0.25 }, 0.28)
-    .add(() => {
-      setExpandedState(false);
-      stopWarp();
-      galaxyMotion.value = 1;
-      document.body.classList.remove('is-warping');
-    }, 0.45)
-    .to(heroCopy, { autoAlpha: 1, duration: 0.25 }, 0.48)
-    .to(heroActions, { autoAlpha: 1, filter: 'blur(0px)', duration: 0.25 }, 0.48)
-    .set(siteNav, { autoAlpha: 1, pointerEvents: 'auto' }, 0.48)
-    .to(farStars.material, { opacity: baseStarOpacity.far, duration: 0.25 }, 0.28)
-    .to(midStars.material, { opacity: baseStarOpacity.mid, duration: 0.25 }, 0.28)
-    .to(nearStars.material, { opacity: baseStarOpacity.near, duration: 0.25 }, 0.28)
-    .to(armStarMaterial, { opacity: baseStarOpacity.arms, duration: 0.25 }, 0.28)
-    .to(clusterMaterial, { opacity: baseStarOpacity.cluster, duration: 0.25 }, 0.28);
+function scrollDown() {
+    screen.scrollTop = screen.scrollHeight;
 }
 
-expandBtn?.addEventListener('click', expandGalaxy);
-viewProjectsBtn?.addEventListener('click', expandGalaxy);
-closeGalaxyBtn?.addEventListener('click', collapseGalaxy);
-window.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && (isGalaxyExpanded || isGalaxyTransitioning)) collapseGalaxy();
+/* lines: array of {text|html, cls} — text is escaped, html is trusted */
+function print(lines) {
+    for (const line of [].concat(lines)) {
+        if (line === null || line === undefined) continue;
+        if (typeof line === 'string') { append(esc(line) || '&nbsp;'); continue; }
+        const body = line.html !== undefined ? line.html : (esc(line.text) || '&nbsp;');
+        append(body, line.cls || '');
+    }
+}
+
+function promptHtml() {
+    return `<span class="u">${DATA.user}@${DATA.host}</span>:<span class="p">${pathLabel(cwd)}</span>$`;
+}
+
+function renderPrompt() {
+    ps1El.innerHTML = promptHtml();
+    document.querySelector('.tb-right').textContent = pathLabel(cwd);
+}
+
+function echoCommand(raw) {
+    append(`${promptHtml()} ${esc(raw)}`, 'echo');
+}
+
+/* typed-out line, used by the boot sequence */
+async function type(text, cls = '') {
+    const el = append('', cls);
+    if (reduceMotion) { el.textContent = text; scrollDown(); return; }
+    for (let i = 0; i < text.length; i++) {
+        el.textContent += text[i];
+        if (i % 3 === 0) await sleep(8);
+    }
+    scrollDown();
+}
+
+/* ═══════════════════════ content renderers ═══════════════════════ */
+
+function skillLines() {
+    const out = [];
+    DATA.skills.forEach(g => {
+        out.push({ html: `<span class="acc">${esc(g.group)}</span>` });
+        out.push({ html: g.items.map(i => `  ${esc(i)}`).join('\n'), cls: 'blk' });
+    });
+    return out;
+}
+
+function experienceLines() {
+    const out = [];
+    DATA.experience.forEach(x => {
+        out.push({ html: `<span class="acc">${esc(x.role)}</span> <span class="dim">— ${esc(x.org)} · ${esc(x.dates)}</span>` });
+        out.push({ html: x.points.map(pt => `  · ${esc(pt)}`).join('\n'), cls: 'blk' });
+    });
+    return out;
+}
+
+function educationLines() {
+    return DATA.education.map(e => ({
+        html: `<span class="acc">${esc(e.school)}</span>\n  <span class="dim">${esc(e.detail)}</span>`, cls: 'blk'
+    }));
+}
+
+function certMeta(c) {
+    return c.inProgress ? `${c.org} · in progress · ${c.kind}` : `${c.org} · ${c.year} · ${c.kind}`;
+}
+
+function projectLinks(p, labels) {
+    const links = [];
+    if (p.demo) links.push(`<a href="${p.demo}" target="_blank" rel="noopener">${labels[0]}</a>`);
+    if (p.code) links.push(`<a href="${p.code}" target="_blank" rel="noopener">${labels[1]}</a>`);
+    return links;
+}
+
+function contactLines() {
+    return [{
+        html: `<dl class="kv">
+      <dt>email</dt><dd><a href="mailto:${DATA.email}">${DATA.email}</a></dd>
+      <dt>github</dt><dd><a href="${DATA.github}" target="_blank" rel="noopener">${DATA.github.replace('https://', '')}</a></dd>
+      <dt>linkedin</dt><dd><a href="${DATA.linkedin}" target="_blank" rel="noopener">${DATA.linkedin.replace('https://www.', '')}</a></dd>
+      <dt>resume</dt><dd><a href="${DATA.resume}" target="_blank" rel="noopener">Andy Apaez Resume.pdf</a></dd>
+    </dl>` },
+        { html: `<span class="dim">Fastest path: <span class="acc">open email</span> — or just type <span class="acc">sudo hire andy</span>.</span>`, cls: 'blk' }
+    ];
+}
+
+function resumeLines() {
+    return [
+        { html: `<span class="dim">%PDF-1.7 … 112 KB of binary withheld for your safety.</span>` },
+        { html: `<span class="dim">Rendering human-readable version:</span>`, cls: 'blk' },
+        { html: `<span class="b">${esc(DATA.name)}</span> — ${esc(DATA.role)}, ${esc(DATA.focus)}` },
+        { text: '' },
+        { html: `<span class="acc">Certifications</span>` },
+        { html: DATA.certs.map(c => `  ${esc(c.inProgress ? 'now' : c.year)}  ${esc(c.name)} — ${esc(c.org)}${c.inProgress ? ' (in progress)' : ''}`).join('\n'), cls: 'blk' },
+        { html: `<span class="acc">Education</span>` },
+        { html: DATA.education.map(e => `  ${esc(e.school)} — ${esc(e.detail)}`).join('\n'), cls: 'blk' },
+        { html: `<span class="acc">Experience</span>` },
+        { html: DATA.experience.map(x => `  ${esc(x.dates)}  ${esc(x.role)} — ${esc(x.org)}`).join('\n'), cls: 'blk' },
+        { html: `<span class="acc">Selected projects</span>` },
+        { html: DATA.projects.slice(0, 3).map(p => `  ${esc(p.name)} — ${esc(p.blurb)}`).join('\n'), cls: 'blk' },
+        { html: `<span class="acc">Skills</span>` },
+        { html: DATA.skills.map(g => `  ${esc(g.group)}: ${esc(g.items.join(', '))}`).join('\n'), cls: 'blk' },
+        { html: `Full PDF: <a href="${DATA.resume}" target="_blank" rel="noopener">Andy Apaez Resume.pdf</a> <span class="dim">(or run <span class="acc">resume</span> to open it)</span>`, cls: 'blk' }
+    ];
+}
+
+function projectLines(p) {
+    const links = projectLinks(p, ['live demo', 'source']);
+    const meta = [p.status, p.year, ...p.tags].filter(Boolean);
+    const out = [
+        { html: `<span class="b"># ${esc(p.name)}</span>` },
+        { html: `<span class="dim">${esc(meta.join(' · '))}</span>`, cls: 'blk' },
+        { text: p.desc, cls: 'blk' }
+    ];
+    if (links.length) {
+        out.push({ html: links.join('  ·  '), cls: 'blk' });
+        out.push({ html: `<span class="dim">Shortcut: <span class="acc">open ${esc(p.slug)}</span></span>`, cls: 'blk' });
+    }
+    return out;
+}
+
+function certLines(c) {
+    return [
+        { html: `<span class="b">${esc(c.name)}</span>` },
+        { html: `<span class="dim">${esc(certMeta(c))}</span>`, cls: 'blk' },
+        { text: c.desc, cls: 'blk' }
+    ];
+}
+
+/* ═══════════════════════ commands ═══════════════════════ */
+
+const HELP_GROUPS = [
+    {
+        title: 'start here', items: [
+            ['whoami', 'who I am, in one screen'],
+            ['projects', 'what I have built'],
+            ['skills', 'languages and tools'],
+            ['experience', 'where I have worked'],
+            ['certs', 'certifications'],
+            ['resume', 'open the PDF'],
+            ['contact', 'every way to reach me'],
+            ['gui', 'leave the terminal, see the normal site']
+        ]
+    },
+    {
+        title: 'poke around', items: [
+            ['ls [-a] [path]', 'list files'],
+            ['cd <path>', 'change directory'],
+            ['cat <file>', 'read a file'],
+            ['pwd', 'where am I'],
+            ['tree', 'the whole filesystem at once'],
+            ['open <target>', 'open a project, link, or the resume'],
+            ['man <cmd>', 'what a command does']
+        ]
+    },
+    {
+        title: 'shell things', items: [
+            ['history', 'commands you have run'],
+            ['theme <name>', 'green · amber · blue · mono'],
+            ['clear', 'wipe the screen (Ctrl+L)'],
+            ['neofetch', 'system info, portfolio edition'],
+            ['banner', 'big letters']
+        ]
+    },
+    {
+        title: 'not strictly necessary', items: [
+            ['sudo hire andy', 'the important one'],
+            ['fortune', 'unsolicited wisdom'],
+            ['coffee', 'fuel'],
+            ['matrix', 'you know the one'],
+            ['vim', 'enter, then panic'],
+            ['sl', 'a train. really.']
+        ]
+    }
+];
+
+const commands = {};
+const def = (name, desc, run, opts = {}) => {
+    commands[name] = { name, desc, run, usage: opts.usage || name, hidden: opts.hidden || false };
+};
+
+def('help', 'list every command', () => {
+    print([{ html: `<span class="dim">andysh built-ins. Tab completes, ↑ recalls.</span>`, cls: 'blk' }]);
+    HELP_GROUPS.forEach(group => {
+        const rows = group.items
+            .map(([cmd, desc]) => `<div class="help-row"><span>${esc(cmd)}</span><span class="dim">${esc(desc)}</span></div>`)
+            .join('');
+        append(`<h4>${esc(group.title)}</h4>${rows}`, 'help-grp');
+    });
+    print([{ html: `<span class="dim">In a hurry? <span class="acc">resume</span>, or hit the GUI mode button.</span>`, cls: 'blk' }]);
 });
 
-// ========== Nav reveal after hero ==========
-const heroSection = document.querySelector('.hero-section');
-if (heroSection) {
-  const navObserver = new IntersectionObserver(
-    ([entry]) => {
-      document.body.classList.toggle('nav-visible', !entry.isIntersecting);
-    },
-    { threshold: 0.2 }
-  );
-  navObserver.observe(heroSection);
+def('whoami', 'short bio', () => {
+    print([
+        { html: `<span class="b">${esc(DATA.name)}</span> <span class="dim">— ${esc(DATA.role)}</span>` },
+        { html: `<span class="dim">${esc(DATA.focus)}</span>`, cls: 'blk' },
+        { text: DATA.tagline, cls: 'blk' },
+        {
+            html: `<dl class="kv">
+      <dt>based in</dt><dd>${esc(DATA.location)}</dd>
+      <dt>studying</dt><dd>Computer Technology (A.A.S.) at CUNY College of Staten Island</dd>
+      <dt>building</dt><dd>a threat-intelligence pipeline (Redpanda → Vector → OpenSearch → Grafana)</dd>
+      <dt>certified</dt><dd>${earnedCerts().map(c => esc(c.short)).join(', ')} · Security+ in progress</dd>
+      <dt>goal</dt><dd>security engineer</dd>
+      <dt>open to</dt><dd>internships, collaboration, interesting problems</dd>
+    </dl>`
+        },
+        { html: `<span class="dim">Next: <span class="acc">projects</span> · <span class="acc">skills</span> · <span class="acc">resume</span></span>`, cls: 'blk' }
+    ]);
+});
+
+def('about', 'longer bio', () => print(DATA.about.map(p => ({ text: p, cls: 'blk' }))));
+
+def('projects', 'list projects', (args) => {
+    if (args[0]) {
+        const p = findProject(args[0]);
+        if (!p) return print([{ html: `<span class="err">projects: no such project: ${esc(args[0])}</span>` }]);
+        return print(projectLines(p));
+    }
+    DATA.projects.forEach(p => {
+        const links = projectLinks(p, ['demo', 'code']).join(' · ');
+        const status = p.status ? ` <span class="warn">[${esc(p.status)}]</span>` : '';
+        append(
+            `<span class="acc">${esc(p.name)}</span>${status} <span class="dim">— ${esc(p.tags.join(', '))}</span>\n` +
+            `  ${esc(p.blurb)}\n  ${links ? links + ' <span class="dim">· </span>' : ''}<span class="dim">cat projects/${esc(p.slug)}/README.md</span>`,
+            'blk'
+        );
+    });
+    print([{ html: `<span class="dim">${DATA.projects.length} shown · <a href="${DATA.repos}" target="_blank" rel="noopener">all repositories</a></span>`, cls: 'blk' }]);
+}, { usage: 'projects [slug]' });
+
+def('skills', 'languages and tools', () => print(skillLines()));
+
+def('certs', 'certifications', () => {
+    DATA.certs.forEach(c => append(
+        `<span class="acc">${esc(c.name)}</span>\n  <span class="dim">${esc(certMeta(c))}</span>\n  ${esc(c.desc)}`,
+        'blk'
+    ));
+});
+
+def('experience', 'work history', () => print(experienceLines()));
+
+def('education', 'school', () => print(educationLines()));
+
+def('contact', 'how to reach me', () => print(contactLines()));
+
+def('email', 'open a draft email', () => {
+    print([{ html: `Opening <a href="mailto:${DATA.email}">${DATA.email}</a> …` }]);
+    window.location.href = `mailto:${DATA.email}`;
+});
+
+def('resume', 'open the resume PDF', () => {
+    print([{ html: `Opening <a href="${DATA.resume}" target="_blank" rel="noopener">Andy Apaez Resume.pdf</a> in a new tab …` }]);
+    window.open(DATA.resume, '_blank', 'noopener');
+});
+
+def('ls', 'list directory contents', (args) => {
+    const flags = args.filter(a => a.startsWith('-'));
+    const target = args.find(a => !a.startsWith('-')) || '';
+    const all = flags.some(f => f.includes('a'));
+
+    const res = resolvePath(target);
+    if (!res) return print([{ html: `<span class="err">ls: ${esc(target)}: No such file or directory</span>` }]);
+    if (res.node.type === 'file') return print([{ text: target }]);
+
+    const names = Object.keys(res.node.children).filter(n => all || !res.node.children[n].hidden);
+    if (!names.length) return print([{ html: `<span class="dim">(empty)</span>` }]);
+
+    const cells = names.sort().map(n => {
+        const isDir = res.node.children[n].type === 'dir';
+        return `<span>${isDir ? `<span class="acc">${esc(n)}/</span>` : esc(n)}</span>`;
+    }).join('');
+    append(cells, 'cols');
+}, { usage: 'ls [-a] [path]' });
+
+def('cd', 'change directory', (args) => {
+    const target = args[0] || '~';
+    const res = resolvePath(target);
+    if (!res) return print([{ html: `<span class="err">cd: ${esc(target)}: No such file or directory</span>` }]);
+    if (res.node.type !== 'dir') return print([{ html: `<span class="err">cd: ${esc(target)}: Not a directory</span>` }]);
+    cwd = res.segs;
+    renderPrompt();
+}, { usage: 'cd <path>' });
+
+def('pwd', 'print working directory', () => print([{ text: pathLabel(cwd) }]));
+
+def('cat', 'print a file', (args) => {
+    if (!args.length) return print([{ html: `<span class="dim">usage: cat &lt;file&gt; — try <span class="acc">cat about.txt</span></span>` }]);
+    args.forEach(target => {
+        const res = resolvePath(target);
+        if (!res) return print([{ html: `<span class="err">cat: ${esc(target)}: No such file or directory</span>` }]);
+        if (res.node.type === 'dir') return print([{ html: `<span class="err">cat: ${esc(target)}: Is a directory</span>` }]);
+        print(res.node.render());
+    });
+}, { usage: 'cat <file>' });
+
+def('tree', 'show the whole filesystem', () => {
+    const lines = ['~'];
+    const walk = (node, prefix) => {
+        const names = Object.keys(node.children).filter(n => !node.children[n].hidden).sort();
+        names.forEach((name, i) => {
+            const last = i === names.length - 1;
+            const child = node.children[name];
+            const isDir = child.type === 'dir';
+            lines.push(`${prefix}${last ? '└── ' : '├── '}${name}${isDir ? '/' : ''}`);
+            if (isDir) walk(child, prefix + (last ? '    ' : '│   '));
+        });
+    };
+    walk(root, '');
+    append(esc(lines.join('\n')), 'blk');
+});
+
+def('open', 'open a project, link, or file', (args) => {
+    const targets = {
+        github: DATA.github, repos: DATA.repos, linkedin: DATA.linkedin,
+        resume: DATA.resume, email: `mailto:${DATA.email}`
+    };
+    const key = (args[0] || '').toLowerCase();
+    if (!key) return print([{ html: `<span class="dim">usage: open &lt;project|github|linkedin|resume|email&gt;</span>` }]);
+
+    if (targets[key]) {
+        print([{ html: `Opening <span class="str">${esc(key)}</span> …` }]);
+        if (key === 'email') window.location.href = targets[key];
+        else window.open(targets[key], '_blank', 'noopener');
+        return;
+    }
+
+    const p = findProject(key);
+    if (!p) return print([{ html: `<span class="err">open: unknown target: ${esc(key)}</span>` }]);
+    const url = p.demo || p.code;
+    if (!url) return print([{ html: `<span class="dim">${esc(p.name)} has no public link yet — try <span class="acc">projects ${esc(p.slug)}</span>.</span>` }]);
+    print([{ html: `Opening <span class="str">${esc(p.name)}</span> ${p.demo ? 'demo' : 'source'} …` }]);
+    window.open(url, '_blank', 'noopener');
+}, { usage: 'open <target>' });
+
+def('man', 'describe a command', (args) => {
+    const c = commands[(args[0] || '').toLowerCase()];
+    if (!c) return print([{ html: `<span class="err">No manual entry for ${esc(args[0] || '')}</span>` }]);
+    print([
+        { html: `<span class="b">${esc(c.name.toUpperCase())}</span><span class="dim">(1)</span>` },
+        { html: `  <span class="acc">${esc(c.usage)}</span>` },
+        { text: `  ${c.desc}`, cls: 'blk' }
+    ]);
+}, { usage: 'man <command>' });
+
+def('history', 'show command history', () => {
+    if (!history.length) return print([{ html: `<span class="dim">(nothing yet)</span>` }]);
+    append(history.map((h, i) => `<span class="dim">${String(i + 1).padStart(3)}</span>  ${esc(h)}`).join('\n'), 'blk');
+});
+
+def('clear', 'clear the screen', () => { output.innerHTML = ''; });
+
+def('theme', 'switch color scheme', (args) => {
+    const pick = (args[0] || '').toLowerCase();
+    if (!THEMES.includes(pick)) {
+        return print([{ html: `<span class="dim">usage: theme &lt;${THEMES.join('|')}&gt; — current: <span class="acc">${document.body.dataset.theme}</span></span>` }]);
+    }
+    document.body.dataset.theme = pick;
+    try { localStorage.setItem('andysh:theme', pick); } catch (e) { /* private mode */ }
+    print([{ html: `Theme set to <span class="acc">${esc(pick)}</span>.` }]);
+}, { usage: 'theme <green|amber|blue|mono>' });
+
+def('banner', 'big letters', () => {
+    append(esc(BANNER), 'ascii');
+    print([{ html: `<span class="dim">${esc(DATA.role)} · ${esc(DATA.focus)}</span>`, cls: 'blk' }]);
+});
+
+def('neofetch', 'system info', () => {
+    const logo = [
+        '        ▄▄▄▄▄        ',
+        '     ▄██████████▄    ',
+        '   ▄████▀    ▀████▄  ',
+        '  ████▀   ▄▄   ▀████ ',
+        ' ████    ████    ████',
+        ' ████   ██████   ████',
+        ' ████  ████████  ████',
+        ' ▀███▄▄▀      ▀▄▄███▀',
+        '   ▀██████████████▀  '
+    ];
+    const info = [
+        ['', `<span class="acc b">${DATA.user}@${DATA.host}</span>`],
+        ['', '<span class="dim">─────────────────────</span>'],
+        ['OS', 'PortfolioOS 2.0 (terminal edition)'],
+        ['Shell', 'andysh 2.0.1'],
+        ['Location', DATA.location],
+        ['Packages', `${DATA.projects.length} projects`],
+        ['Certs', `${earnedCerts().length} (${earnedCerts().map(c => c.short).join(', ')}) + Security+ in progress`],
+        ['Languages', 'Python, JS/TS, SQL, C++'],
+        ['Editor', 'VS Code'],
+        ['Theme', document.body.dataset.theme],
+        ['Status', '<span class="acc">available for hire</span>']
+    ];
+    const rows = Math.max(logo.length, info.length);
+    let html = '';
+    for (let i = 0; i < rows; i++) {
+        const l = (logo[i] || '').padEnd(21, ' ');
+        const pair = info[i];
+        const right = pair ? (pair[0] ? `<span class="acc">${pair[0]}</span>: ${pair[1]}` : pair[1]) : '';
+        html += `<span class="acc">${esc(l)}</span>  ${right}\n`;
+    }
+    append(html, 'blk');
+});
+
+def('fortune', 'unsolicited wisdom', () => {
+    print([{ html: `<span class="dim">"</span>${esc(FORTUNES[Math.floor(Math.random() * FORTUNES.length)])}<span class="dim">"</span>` }]);
+});
+
+def('date', 'current date', () => print([{ text: new Date().toString() }]));
+
+def('echo', 'print text', (args) => print([{ text: args.join(' ') }]));
+
+def('coffee', 'brew a cup', async () => {
+    await staged([
+        ['Grinding beans', 'ok'],
+        ['Heating water', 'ok'],
+        ['Brewing', 'ok']
+    ]);
+    append(esc([
+        '      ( (',
+        '       ) )',
+        '    ........',
+        '    |      |]',
+        '    \\      /',
+        '     `----\''
+    ].join('\n')), 'blk');
+    print([{ html: `<span class="dim">Purely decorative. The productivity is real though.</span>` }]);
+});
+
+def('matrix', 'digital rain', async () => {
+    if (reduceMotion) return print([{ html: `<span class="dim">(animation skipped — reduced motion is on)</span>` }]);
+    const rows = 12, cols = 46;
+    const chars = 'アイウエオカキクケコサシスセソ01001011ANDYAPAEZ';
+    const el = append('', 'blk');
+    el.style.color = 'var(--accent)';
+    const drops = Array.from({ length: cols }, () => Math.floor(Math.random() * rows));
+
+    for (let frame = 0; frame < 44 && !abort; frame++) {
+        const grid = Array.from({ length: rows }, () => new Array(cols).fill(' '));
+        drops.forEach((d, c) => {
+            for (let t = 0; t < 4; t++) {
+                const r = d - t;
+                if (r >= 0 && r < rows) grid[r][c] = chars[Math.floor(Math.random() * chars.length)];
+            }
+            drops[c] = d + 1 > rows + 4 ? 0 : d + 1;
+        });
+        el.textContent = grid.map(r => r.join('')).join('\n');
+        await sleep(70);
+    }
+    print([{ html: `<span class="dim">…there is no spoon. Try <span class="acc">whoami</span>.</span>` }]);
+});
+
+def('vim', 'a trap', () => {
+    print([
+        { html: `<span class="dim">~ opening vim …</span>` },
+        { html: `You are now inside vim. Classic mistake.`, cls: 'blk' },
+        { html: `<span class="dim">Type <span class="acc">:q</span> to escape. Or <span class="acc">:wq</span>. Or close the tab, I don't judge.</span>` }
+    ]);
+});
+
+def(':q', 'escape vim', () => print([{ html: `<span class="acc">Escaped.</span> <span class="dim">Few manage it on the first try.</span>` }]));
+commands[':wq'] = { ...commands[':q'], name: ':wq' };
+commands[':q!'] = { ...commands[':q'], name: ':q!' };
+
+def('sl', 'a train', async () => {
+    const train = [
+        '      ====        ________',
+        '  _D _|  |_______/        \\__I_I_____',
+        '   |(_)---  |   H\\________/ |   |',
+        '   /     |  |   H  |  |     |   |',
+        '  |      |  |   H  |__--------------|',
+        '  | ________|___H__/__|_____/[][]~\\_|',
+        '  |/ |   |-----------I_____I [][] []  D',
+        '__/ =| o |=-O=====O=====O=====O   \\ ____'
+    ];
+    const el = append('', 'blk');
+    el.style.whiteSpace = 'pre';
+    for (let pad = 26; pad >= 0 && !abort; pad -= 2) {
+        el.textContent = train.map(l => ' '.repeat(pad) + l).join('\n');
+        await sleep(55);
+    }
+    print([{ html: `<span class="dim">You typed it wrong, but the train came anyway.</span>` }]);
+});
+
+def('sudo', 'elevate privileges', async (args) => {
+    const rest = args.join(' ').toLowerCase();
+
+    if (/^hire\s+andy/.test(rest) || rest === 'hire') {
+        await staged([
+            ['Verifying references', 'ok'],
+            ['Reviewing GitHub', 'ok'],
+            ['Checking certifications', `${earnedCerts().length} earned, ${DATA.certs.length - earnedCerts().length} in progress`],
+            ['Negotiating salary', 'pizza accepted'],
+            ['Provisioning workstation', 'ok']
+        ]);
+        append(esc([
+            '█   █ ███ ████  █████ ████ ',
+            '█   █  █  █   █ █     █   █',
+            '█████  █  ████  ████  █   █',
+            '█   █  █  █   █ █     █   █',
+            '█   █ ███ █   █ █████ ████ '
+        ].join('\n')), 'ascii');
+        print([
+            { html: `<span class="acc">Andy has been added to your team.</span>`, cls: 'blk' },
+            {
+                html: `One step left — make it official:<br>` +
+                    `<a href="mailto:${DATA.email}">${DATA.email}</a> · ` +
+                    `<a href="${DATA.linkedin}" target="_blank" rel="noopener">LinkedIn</a> · ` +
+                    `<a href="${DATA.resume}" target="_blank" rel="noopener">Resume</a>`, cls: 'blk'
+            }
+        ]);
+        return;
+    }
+
+    if (/rm\s+-rf/.test(rest)) return commands['rm'].run(['-rf', '/']);
+
+    print([
+        { html: `<span class="dim">[sudo] password for ${DATA.user}:</span>` },
+        { html: `<span class="err">Sorry, try again.</span>` },
+        { html: `<span class="err">${DATA.user} is not in the sudoers file. This incident has been reported.</span>` },
+        { html: `<span class="dim">The only privileged command here is <span class="acc">sudo hire andy</span>.</span>`, cls: 'blk' }
+    ]);
+}, { usage: 'sudo <command>' });
+
+def('hire', 'the important one', () => {
+    print([{ html: `<span class="dim">Permission denied. This one needs root — try <span class="acc">sudo hire andy</span>.</span>` }]);
+});
+
+def('rm', 'delete things', async (args) => {
+    const joined = args.join(' ');
+    if (!/-rf/.test(joined)) return print([{ html: `<span class="err">rm: this filesystem is read-only. Nice try.</span>` }]);
+    await staged([
+        ['Deleting /projects', 'gone'],
+        ['Deleting /certs', 'gone'],
+        ['Deleting portfolio', 'gone']
+    ], 220);
+    await sleep(320);
+    print([
+        { html: `<span class="warn">…restoring from backup.</span>` },
+        { html: `<span class="acc">Everything is fine.</span> <span class="dim">Version control is a lifestyle.</span>`, cls: 'blk' }
+    ]);
+}, { usage: 'rm -rf /' });
+
+def('gui', 'switch to the GUI site', () => {
+    print([{ html: `<span class="dim">Loading graphical interface …</span>` }]);
+    setTimeout(() => setMode('gui'), reduceMotion ? 0 : 260);
+});
+commands['exit'] = { ...commands['gui'], name: 'exit', desc: 'leave the shell' };
+commands['logout'] = { ...commands['gui'], name: 'logout', desc: 'leave the shell', hidden: true };
+
+def('ping', 'check if I am around', async () => {
+    for (let i = 0; i < 3 && !abort; i++) {
+        print([{ text: `64 bytes from andy.dev: icmp_seq=${i + 1} ttl=64 time=${(Math.random() * 12 + 2).toFixed(1)} ms` }]);
+        await sleep(280);
+    }
+    print([{ html: `<span class="dim">3 packets transmitted, 3 received, 0% packet loss — I'm around.</span>`, cls: 'blk' }]);
+}, { hidden: true });
+
+/* helpers used by commands */
+
+function findProject(key) {
+    const k = key.toLowerCase().replace(/\/$/, '');
+    return DATA.projects.find(p => p.slug === k || p.name.toLowerCase() === k);
 }
+
+async function staged(steps, delay = 170) {
+    const width = Math.max(...steps.map(s => s[0].length)) + 3;
+    for (const [label, result] of steps) {
+        if (abort) return;
+        const el = append(`${esc(label)}${esc('.'.repeat(width - label.length))} <span class="dim">…</span>`);
+        await sleep(delay);
+        el.innerHTML = `${esc(label)}${esc('.'.repeat(width - label.length))} <span class="acc">${esc(result)}</span>`;
+        scrollDown();
+    }
+    append('&nbsp;');
+}
+
+/* ═══════════════════════ input handling ═══════════════════════ */
+
+const history = [];
+let histIdx = -1;
+let draft = '';
+
+function updateMirror() {
+    const value = input.value;
+    const pos = input.selectionStart ?? value.length;
+    const before = value.slice(0, pos);
+    const rest = value.slice(pos);
+    const ghost = rest ? '' : currentGhost();
+
+    let at, after, trailing = '';
+    if (rest) {
+        at = rest[0];
+        after = rest.slice(1);
+    } else if (ghost) {
+        at = ghost[0];
+        after = '';
+        trailing = `<span class="ghost">${esc(ghost.slice(1))}</span>`;
+    } else {
+        at = ' ';
+        after = '';
+    }
+
+    const cursorCls = (!rest && ghost) ? 'cur ghost-cur' : 'cur';
+    mirror.innerHTML = `${esc(before)}<span class="${cursorCls}">${esc(at)}</span>${esc(after)}${trailing}`;
+}
+
+/* the dim text trailing the cursor — what Tab or → would accept */
+function currentGhost() {
+    if (menu) return '';
+    const ctx = completionContext();
+    if (!ctx.editing || !ctx.matches.length) return '';
+    const best = ctx.matches.length === 1 ? ctx.matches[0] : commonPrefix(ctx.matches);
+    return best.length > ctx.editing.length ? best.slice(ctx.editing.length) : '';
+}
+
+async function runLine(raw) {
+    const line = raw.trim();
+    echoCommand(raw);
+    if (!line) return;
+
+    history.push(line);
+    histIdx = history.length;
+
+    const parts = line.split(/\s+/);
+    const name = parts[0].toLowerCase();
+    const args = parts.slice(1);
+    const cmd = commands[name];
+
+    if (!cmd) {
+        print([
+            { html: `<span class="err">andysh: command not found: ${esc(parts[0])}</span>` },
+            { html: `<span class="dim">${suggest(name)}</span>`, cls: 'blk' }
+        ]);
+        return;
+    }
+
+    busy = true;
+    abort = false;
+    document.body.classList.add('busy');
+    try {
+        await cmd.run(args, line);
+    } catch (err) {
+        print([{ html: `<span class="err">andysh: ${esc(name)} crashed: ${esc(err.message)}</span>` }]);
+    } finally {
+        busy = false;
+        document.body.classList.remove('busy');
+        scrollDown();
+    }
+}
+
+function suggest(name) {
+    const near = Object.keys(commands).filter(c => !commands[c].hidden &&
+        (c.startsWith(name[0]) || c.includes(name) || name.includes(c)));
+    return near.length
+        ? `Did you mean: ${near.slice(0, 4).join(', ')}? Type help for the full list.`
+        : `Type help to see what this shell understands.`;
+}
+
+/* ── tab completion ── */
+
+const PATH_ARG = new Set(['cd', 'ls', 'cat']);
+const THEMES = ['green', 'amber', 'blue', 'mono'];
+
+function completionCandidates(tokens, editing) {
+    if (tokens.length <= 1) {
+        return Object.keys(commands).filter(c => !commands[c].hidden && c.startsWith(editing)).sort();
+    }
+
+    const cmd = tokens[0].toLowerCase();
+
+    if (cmd === 'theme') return THEMES.filter(t => t.startsWith(editing));
+    if (cmd === 'man') return Object.keys(commands).filter(c => !commands[c].hidden && c.startsWith(editing)).sort();
+    if (cmd === 'open') {
+        return ['github', 'repos', 'linkedin', 'resume', 'email', ...DATA.projects.map(p => p.slug)]
+            .filter(t => t.startsWith(editing));
+    }
+    if (cmd === 'projects') return DATA.projects.map(p => p.slug).filter(t => t.startsWith(editing));
+
+    if (PATH_ARG.has(cmd)) {
+        const slash = editing.lastIndexOf('/');
+        const dirPart = slash === -1 ? '' : editing.slice(0, slash + 1);
+        const leaf = slash === -1 ? editing : editing.slice(slash + 1);
+        const res = resolvePath(dirPart || '.');
+        if (!res || res.node.type !== 'dir') return [];
+        return Object.keys(res.node.children)
+            .filter(n => n.startsWith(leaf) && (!res.node.children[n].hidden || leaf.startsWith('.')))
+            .sort()
+            .map(n => dirPart + n + (res.node.children[n].type === 'dir' ? '/' : ''));
+    }
+
+    return [];
+}
+
+function commonPrefix(list) {
+    if (!list.length) return '';
+    let prefix = list[0];
+    for (const item of list.slice(1)) {
+        while (!item.startsWith(prefix)) prefix = prefix.slice(0, -1);
+    }
+    return prefix;
+}
+
+function describeCandidate(tokens, cand) {
+    const cmd = tokens.length <= 1 ? null : tokens[0].toLowerCase();
+    const bare = cand.replace(/\/$/, '');
+
+    if (!cmd || cmd === 'man') return commands[bare] ? commands[bare].desc : '';
+    if (cmd === 'theme') return 'color scheme';
+    if (cmd === 'projects' || cmd === 'open') {
+        const p = DATA.projects.find(x => x.slug === bare);
+        if (p) return p.blurb;
+        return {
+            github: 'my GitHub profile', repos: 'every repository',
+            linkedin: 'my LinkedIn', resume: 'the PDF', email: 'compose a message'
+        }[bare] || '';
+    }
+    return cand.endsWith('/') ? 'directory' : 'file';
+}
+
+function completionContext() {
+    const value = input.value;
+    const pos = input.selectionStart ?? value.length;
+    const head = value.slice(0, pos);
+    const tail = value.slice(pos);
+    const tokens = head.split(/\s+/);
+    const editing = tokens[tokens.length - 1];
+    return {
+        value, tail, tokens, editing,
+        tokenStart: head.length - editing.length,
+        matches: completionCandidates(tokens, editing)
+    };
+}
+
+function applyCandidate(ctx, candidate, addSpace) {
+    const done = candidate + (addSpace && !candidate.endsWith('/') ? ' ' : '');
+    const replaced = ctx.value.slice(0, ctx.tokenStart) + done;
+    input.value = replaced + ctx.tail;
+    input.setSelectionRange(replaced.length, replaced.length);
+}
+
+/* ── the completion menu (zsh-style: cycle with Tab, arrows, or click) ── */
+
+let menu = null;
+
+function openMenu(ctx, typed) {
+    menu = { ctx, typed, index: -1 };
+    const el = document.createElement('div');
+    el.className = 'menu';
+    el.innerHTML = ctx.matches.map((m, i) => {
+        const desc = describeCandidate(ctx.tokens, m);
+        return `<button type="button" class="menu-item" data-i="${i}">` +
+            `<span class="mi-name">${esc(m)}</span>` +
+            `<span class="mi-desc">${esc(desc)}</span></button>`;
+    }).join('') +
+        `<div class="menu-hint">Tab / arrows to cycle · Enter to accept · Esc to cancel</div>`;
+
+    el.addEventListener('mousedown', (e) => {
+        const item = e.target.closest('.menu-item');
+        if (!item) return;
+        e.preventDefault();
+        moveMenu(Number(item.dataset.i), true);
+        closeMenu(true);
+        input.focus();
+    });
+
+    screen.insertBefore(el, form);
+    menu.el = el;
+    scrollDown();
+}
+
+function moveMenu(index, absolute = false) {
+    if (!menu) return;
+    const total = menu.ctx.matches.length;
+    menu.index = absolute ? index : ((index % total) + total) % total;
+    applyCandidate(menu.ctx, menu.ctx.matches[menu.index], false);
+    updateMirror();
+
+    menu.el.querySelectorAll('.menu-item').forEach((item, i) =>
+        item.classList.toggle('on', i === menu.index));
+    const active = menu.el.querySelector('.menu-item.on');
+    if (active) active.scrollIntoView({ block: 'nearest' });
+}
+
+function closeMenu(keep) {
+    if (!menu) return;
+    const { ctx, typed, index } = menu;
+    menu.el.remove();
+    menu = null;
+
+    if (keep && index >= 0) applyCandidate(ctx, ctx.matches[index], true);
+    else if (!keep) {
+        input.value = typed.value;
+        input.setSelectionRange(typed.pos, typed.pos);
+    }
+    updateMirror();
+}
+
+function handleTab(shift) {
+    if (menu) {
+        moveMenu(menu.index + (shift ? -1 : 1));
+        return;
+    }
+
+    const ctx = completionContext();
+    if (!ctx.matches.length) return;
+
+    if (ctx.matches.length === 1) {
+        applyCandidate(ctx, ctx.matches[0], true);
+        updateMirror();
+        return;
+    }
+
+    const typed = { value: input.value, pos: input.selectionStart ?? input.value.length };
+    const prefix = commonPrefix(ctx.matches);
+    if (prefix.length > ctx.editing.length) applyCandidate(ctx, prefix, false);
+
+    openMenu(completionContext(), typed);
+    updateMirror();
+}
+
+/* ── keys ── */
+
+input.addEventListener('input', updateMirror);
+input.addEventListener('click', updateMirror);
+input.addEventListener('keyup', updateMirror);
+
+input.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        handleTab(e.shiftKey);
+        return;
+    }
+
+    if (menu) {
+        if (e.key === 'Enter') { e.preventDefault(); closeMenu(true); return; }
+        if (e.key === 'Escape') { e.preventDefault(); closeMenu(false); return; }
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault(); moveMenu(menu.index + 1); return;
+        }
+        if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault(); moveMenu(menu.index - 1); return;
+        }
+        if (e.key.length === 1 || e.key === 'Backspace') closeMenu(menu.index >= 0);
+    }
+
+    /* → at the end of the line accepts the ghost suggestion */
+    if (e.key === 'ArrowRight' && input.selectionStart === input.value.length && currentGhost()) {
+        e.preventDefault();
+        const ctx = completionContext();
+        const best = ctx.matches.length === 1 ? ctx.matches[0] : commonPrefix(ctx.matches);
+        applyCandidate(ctx, best, ctx.matches.length === 1);
+        updateMirror();
+        return;
+    }
+
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!history.length) return;
+        if (histIdx === history.length) draft = input.value;
+        histIdx = Math.max(0, histIdx - 1);
+        input.value = history[histIdx];
+        input.setSelectionRange(input.value.length, input.value.length);
+        updateMirror();
+        return;
+    }
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (histIdx >= history.length) return;
+        histIdx++;
+        input.value = histIdx === history.length ? draft : history[histIdx];
+        input.setSelectionRange(input.value.length, input.value.length);
+        updateMirror();
+        return;
+    }
+
+    if (e.ctrlKey && (e.key === 'l' || e.key === 'L')) {
+        e.preventDefault();
+        output.innerHTML = '';
+        return;
+    }
+
+    if (e.ctrlKey && (e.key === 'c' || e.key === 'C') && !window.getSelection().toString()) {
+        e.preventDefault();
+        abort = true;
+        queue.length = 0;
+        echoCommand(input.value + '^C');
+        input.value = '';
+        updateMirror();
+        return;
+    }
+
+    if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
+        e.preventDefault();
+        input.value = '';
+        updateMirror();
+    }
+});
+
+const queue = [];
+
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const raw = input.value;
+    input.value = '';
+    updateMirror();
+
+    queue.push(raw);
+    if (busy) return;
+    while (queue.length) await runLine(queue.shift());
+});
+
+/* tapping anywhere in the screen focuses the prompt */
+screen.addEventListener('pointerup', () => {
+    if (!window.getSelection().toString()) input.focus();
+});
+
+/* ═══════════════════════ GUI mode ═══════════════════════ */
+
+const guiView = document.getElementById('guiView');
+const terminalView = document.getElementById('terminalView');
+
+function buildGui() {
+    const link = (href, label, cls = 'btn') =>
+        `<a class="${cls}" href="${href}"${href.startsWith('mailto:') ? '' : ' target="_blank" rel="noopener"'}>${label}</a>`;
+
+    document.getElementById('guiCta').innerHTML = [
+        link(DATA.resume, 'Resume (PDF)', 'btn primary'),
+        link(`mailto:${DATA.email}`, 'Email me'),
+        link(DATA.github, 'GitHub'),
+        link(DATA.linkedin, 'LinkedIn')
+    ].join('');
+
+    document.getElementById('guiStats').innerHTML = DATA.stats
+        .map(s => `<li><b>${esc(s.v)}</b><span>${esc(s.l)}</span></li>`).join('');
+
+    document.getElementById('guiProjects').innerHTML = DATA.projects.map(p => `
+    <article class="card">
+      ${p.status ? `<p class="meta">${esc(p.status)}</p>` : p.year ? `<p class="meta">${esc(p.year)}</p>` : ''}
+      <h3>${esc(p.name)}</h3>
+      <p>${esc(p.desc)}</p>
+      <ul class="tags">${p.tags.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+      <div class="card-links">
+        ${p.demo ? `<a href="${p.demo}" target="_blank" rel="noopener">Live demo →</a>` : ''}
+        ${p.code ? `<a href="${p.code}" target="_blank" rel="noopener">Source →</a>` : ''}
+      </div>
+    </article>`).join('');
+
+    document.getElementById('guiSkills').innerHTML = DATA.skills.map(g => `
+    <div class="skill-col">
+      <h3>${esc(g.group)}</h3>
+      <ul>${g.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>
+    </div>`).join('');
+
+    document.getElementById('guiCerts').innerHTML = DATA.certs.map(c => `
+    <article class="card">
+      <p class="meta">${c.inProgress ? 'In progress' : esc(c.year)} · ${esc(c.kind)}</p>
+      <h3>${esc(c.name)}</h3>
+      <p>${esc(c.desc)}</p>
+      <div class="card-links"><span class="meta">${esc(c.org)}</span></div>
+    </article>`).join('');
+
+    document.getElementById('guiExperience').innerHTML = DATA.experience.map(x => `
+    <article class="card">
+      <p class="meta">${esc(x.dates)}</p>
+      <h3>${esc(x.role)}</h3>
+      <p>${x.points.map(esc).join(' ')}</p>
+      <div class="card-links"><span class="meta">${esc(x.org)}</span></div>
+    </article>`).join('') + DATA.education.map(e => `
+    <article class="card">
+      <p class="meta">Education</p>
+      <h3>${esc(e.school)}</h3>
+      <p>${esc(e.detail)}</p>
+    </article>`).join('');
+
+    document.getElementById('guiContact').innerHTML = [
+        link(`mailto:${DATA.email}`, esc(DATA.email), 'btn primary'),
+        link(DATA.linkedin, 'LinkedIn'),
+        link(DATA.github, 'GitHub'),
+        link(DATA.repos, 'All repositories')
+    ].join('');
+}
+
+function setMode(mode) {
+    const gui = mode === 'gui';
+    document.body.dataset.mode = gui ? 'gui' : 'terminal';
+    guiView.hidden = !gui;
+    terminalView.hidden = gui;
+    toggle.textContent = gui ? '← Terminal mode' : 'GUI mode →';
+    toggle.setAttribute('aria-label', gui ? 'Switch back to the terminal interface' : 'Switch to the standard graphical site');
+
+    if (gui) {
+        window.scrollTo(0, 0);
+        setHash('#gui');
+    } else {
+        setHash('');
+        if (matchMedia('(pointer: fine)').matches) input.focus();
+        scrollDown();
+    }
+}
+
+function setHash(hash) {
+    try { window.history.replaceState(null, '', hash || location.pathname); } catch (e) { /* file:// */ }
+}
+
+toggle.addEventListener('click', () => setMode(document.body.dataset.mode === 'gui' ? 'terminal' : 'gui'));
+document.querySelectorAll('[data-goto]').forEach(btn =>
+    btn.addEventListener('click', () => setMode(btn.dataset.goto)));
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.body.dataset.mode === 'gui') setMode('terminal');
+});
+
+/* ═══════════════════════ boot ═══════════════════════ */
+
+async function boot() {
+    const lines = [
+        'andysh 2.0.1 — portfolio build 2026.09',
+        '',
+        'Loading profile ................ ok',
+        `Mounting /projects ............. ${DATA.projects.length} found`,
+        `Reading /certs ................. ${earnedCerts().length} earned, ${DATA.certs.length - earnedCerts().length} in progress`,
+        'Starting coffee daemon ......... ok',
+        ''
+    ];
+
+    for (const line of lines) {
+        if (line === '') { append('&nbsp;'); continue; }
+        await type(line, 'dim');
+        await sleep(55);
+    }
+
+    append(esc(BANNER), 'ascii');
+
+    print([
+        { html: `<span class="b">${esc(DATA.name)}</span> <span class="dim">— ${esc(DATA.role)} · ${esc(DATA.focus)}</span>` },
+        { text: DATA.tagline, cls: 'blk' },
+        {
+            html: `Type <span class="acc">help</span> for every command, or start with ` +
+                `<span class="acc">whoami</span> · <span class="acc">ls projects</span> · <span class="acc">resume</span>.`
+        },
+        {
+            html: `<span class="dim">Recruiter with 30 seconds? Hit <span class="acc">GUI mode</span> (top right) or run <span class="acc">resume</span>.</span>`,
+            cls: 'blk'
+        }
+    ]);
+}
+
+function init() {
+    try {
+        const saved = localStorage.getItem('andysh:theme');
+        if (saved) document.body.dataset.theme = saved;
+    } catch (e) { /* private mode */ }
+
+    buildGui();
+    renderPrompt();
+    updateMirror();
+
+    if (location.hash === '#gui') setMode('gui');
+    else if (matchMedia('(pointer: fine)').matches) input.focus();
+
+    boot();
+}
+
+init();
