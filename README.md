@@ -1,28 +1,43 @@
 # Andy's Portfolio
 
-Interactive 3D galaxy portfolio built with Three.js. Bright anchor stars open project cards, while a custom fog shader, twinkling particles, and smooth camera moves give the scene a nebula vibe.
+A portfolio that opens as a fake shell. Visitors type `whoami`, `ls projects`, `cat resume.pdf` — and
+anyone who would rather not type hits **GUI mode** for a normal, skimmable site. Both views render from
+the same data, so nothing goes stale in one place and not the other.
 
 ## Features
-- 3D spiral galaxy with clickable project stars and modal details
-- Custom shader fog/nebula layers and twinkling starfield
-- Smooth camera focus on selection plus orbit controls
-- Responsive layout with mobile-friendly modals and CTAs
-- Sections for About, Projects (galaxy), Contact, and Certifications
+- **Working shell** — a virtual filesystem you can `ls`, `cd`, `cat`, and `tree` through
+- **Inline suggestions** — dim ghost text shows the rest of the match as you type; `→` accepts it
+- **Completion menu** — Tab opens a zsh-style menu of commands, paths, project slugs, and themes, each
+  with a description. Tab / Shift+Tab / arrows cycle, Enter accepts, Esc reverts, click works too
+- **Command history** — ↑ / ↓ to recall, plus a `history` command
+- **Shell keybindings** — Ctrl+L clear, Ctrl+C cancel, Ctrl+U kill line
+- **GUI mode** — a persistent button (and `gui` command) that swaps in a conventional portfolio page
+- **Four themes** — `theme green | amber | blue | mono`, remembered between visits
+- **Easter eggs** — `sudo hire andy`, `matrix`, `coffee`, `vim`, `sl`, `rm -rf /`, and a hidden file
 
 ## Run locally
-No build step needed—just open `index.html` in a modern browser:
+No build step:
 ```bash
 open index.html
 ```
-Or serve it for better caching:
+Or serve it:
 ```bash
 npx serve .
 ```
 
-## Controls
-- Drag to orbit, scroll to zoom
-- Click bright stars to open project info
-- Close modal with ✕ or Escape
+## Commands
+`help` lists everything. Highlights:
+
+| Command | What it does |
+| --- | --- |
+| `whoami` | Who I am, in one screen |
+| `projects` | Every project, with demo and source links where public |
+| `experience` | Work history |
+| `ls` · `cd` · `cat` · `tree` | Move around the filesystem |
+| `resume` | Opens the PDF |
+| `open <project>` | Jumps straight to a demo or repo |
+| `gui` | Leaves the terminal for the standard site |
+| `sudo hire andy` | The important one |
 
 ## Tech
-Three.js, GSAP, vanilla JS, CSS.
+Vanilla JS, CSS, and no dependencies — no framework, no build, no 3D engine. Roughly 40 KB of source.

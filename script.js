@@ -1,6 +1,3 @@
-/* ═══════════════════════════════════════════════════════════
-   andysh — a portfolio that behaves like a shell
-   ═══════════════════════════════════════════════════════════ */
 
 const DATA = {
     name: 'Andy Apaez',
@@ -8,7 +5,7 @@ const DATA = {
     host: 'portfolio',
     role: 'Aspiring security engineer',
     focus: 'security · cloud · full-stack',
-    tagline: 'Computer Technology student at CUNY College of Staten Island working toward security engineering — building detection dashboards, threat-intel pipelines, and full-stack apps people actually use.',
+    tagline: 'Computer Science student at CUNY College of Staten Island working toward security engineering — building detection dashboards, threat-intel pipelines, and full-stack apps people actually use.',
     location: 'Brooklyn, NY',
     email: 'andy.apaez16@gmail.com',
     github: 'https://github.com/andy-apaez',
@@ -23,24 +20,29 @@ const DATA = {
     ],
 
     about: [
-        "I'm Andy, from Brooklyn, NY — a freshman at CUNY College of Staten Island studying Computer Technology (A.A.S.). My goal is to become a security engineer.",
-        "My first real project is still running: while working at Los Tacos (now Mezquilla), I built the restaurant's QR-code online menu with Node.js and MySQL, hosted on Vercel. Since then I've been pointing that build-it-yourself habit at security — a SIEM console prototype, and now a containerized threat-intelligence pipeline.",
-        "Outside of projects I practice on TryHackMe, OverTheWire Bandit, and HackTheBox, and I'm studying for CompTIA Security+. Away from the keyboard: weightlifting, Minecraft modpacks, and trading stocks as a hobby."
+        "I'm Andy, a Brooklyn-based Computer Science student (B.S.) in my first year at CUNY College of Staten Island, working toward a career in security engineering.",
+        "I started by building things people use. While working at Los Tacos (now Mezquilla), I built the restaurant's QR-code online menu with Node.js and MySQL and deployed it on Vercel. It's still serving customers today. Now I'm applying that same hands-on approach to security, starting with a SIEM console prototype and moving on to a containerized threat-intelligence pipeline.",
+        "I sharpen my skills on TryHackMe, HackTheBox, and OverTheWire's Bandit, and I'm currently preparing for the CompTIA Security+ exam. Away from the keyboard, you'll find me lifting weights, playing Minecraft modpacks, or following the stock market."
     ],
 
+    
     education: [
-        { school: 'College of Staten Island (CUNY)', detail: 'A.A.S. in Computer Technology · freshman, in progress' },
+        { school: 'College of Staten Island (CUNY)', detail: 'B.S. in Computer Science · freshman, in progress' },
         { school: 'Fort Hamilton High School', detail: 'Graduated' }
     ],
 
     experience: [
         {
-            slug: 'bca',
-            role: 'Assistant Counselor',
-            org: 'Brooklyn Chinese-American Association',
-            dates: 'Oct 2025 – Jul 2026',
-            points: ['Assistant counselor in an afterschool program.']
+            slug: 'Bloomberg Cybersecurity Mentorship',
+            role: 'Mentee',
+            org: 'Bloomberg',
+            dates: 'OCT 2026 - NOV 2026',
+            points: [
+                'Participated in a cybersecurity mentorship program.',
+                'Learned about industry best practices and real-world applications.'
+            ]
         },
+        
         {
             slug: 'los-tacos',
             role: 'Server & tech support',
@@ -55,13 +57,14 @@ const DATA = {
     ],
 
     skills: [
-        { group: 'Languages', items: ['Python', 'JavaScript / TypeScript', 'SQL', 'C++ (learning for coursework)'] },
+        { group: 'Languages', items: ['Python', 'JavaScript / TypeScript', 'Bash', 'SQL', 'C++ (learning for coursework)'] },
         { group: 'Web', items: ['Node.js', 'React', 'Vite', 'Recharts', 'MySQL', 'Vercel'] },
         { group: 'Data & Infrastructure', items: ['Docker Compose', 'OpenSearch', 'Grafana', 'Redpanda', 'Vector'] },
         { group: 'Cloud', items: ['AWS'] },
         { group: 'Systems & Networking', items: ['Linux command line', 'Networking fundamentals'] },
         { group: 'Security Practice', items: ['TryHackMe', 'OverTheWire Bandit', 'HackTheBox'] }
     ],
+
 
     projects: [
         {
@@ -92,15 +95,6 @@ const DATA = {
             tags: ['React', 'TypeScript', 'Vite', 'Recharts'],
             demo: null,
             code: 'https://github.com/andy-apaez/SIEM-Dashboard'
-        },
-        {
-            slug: 'aws-study-guide',
-            name: 'AWS CLF-C02 Study Guide',
-            blurb: 'The study guide I wrote while preparing for Cloud Practitioner.',
-            desc: 'A study guide I put together while preparing for the AWS Certified Cloud Practitioner (CLF-C02) exam, covering core services, cloud concepts, security, and billing.',
-            tags: ['AWS', 'Cloud'],
-            demo: null,
-            code: null
         },
         {
             slug: 'ai-security-career-research',
@@ -141,6 +135,15 @@ const DATA = {
             kind: 'Security',
             inProgress: true,
             desc: 'Currently studying. Exam not yet scheduled.'
+        },
+        {
+            slug: 'Microsoft Azure Fundamentals AZ-900',
+            name: 'Microsoft Azure Fundamentals AZ-900',
+            org: 'Microsoft',
+            short: 'Azure',
+            year: '2026',
+            kind: 'Cloud',
+            desc: 'Core Microsoft Azure services, cloud concepts, and the security principles behind how modern cloud systems run.'
         }
     ]
 };
@@ -199,19 +202,6 @@ const root = {
                 type: 'file',
                 render: () => certLines(c)
             }]))
-        },
-        '.hidden_talents': {
-            type: 'file',
-            hidden: true,
-            render: () => [
-                { text: "You found the hidden file. Respect." },
-                { text: '' },
-                { text: '  · Can name every AWS service that sounds fake but is real' },
-                { text: '  · Has a Minecraft modpack running somewhere, probably' },
-                { text: '  · Checks the stock market between sets at the gym' },
-                { text: '', cls: 'blk' },
-                { html: `Try <span class="acc">sudo hire andy</span> next.`, cls: 'blk' }
-            ]
         }
     }
 };
@@ -282,7 +272,7 @@ function scrollDown() {
     screen.scrollTop = screen.scrollHeight;
 }
 
-/* lines: array of {text|html, cls} — text is escaped, html is trusted */
+
 function print(lines) {
     for (const line of [].concat(lines)) {
         if (line === null || line === undefined) continue;
@@ -305,7 +295,6 @@ function echoCommand(raw) {
     append(`${promptHtml()} ${esc(raw)}`, 'echo');
 }
 
-/* typed-out line, used by the boot sequence */
 async function type(text, cls = '') {
     const el = append('', cls);
     if (reduceMotion) { el.textContent = text; scrollDown(); return; }
@@ -423,6 +412,8 @@ const HELP_GROUPS = [
             ['gui', 'leave the terminal, see the normal site']
         ]
     },
+    
+    /* change this later */
     {
         title: 'poke around', items: [
             ['ls [-a] [path]', 'list files'],
@@ -645,7 +636,7 @@ def('banner', 'big letters', () => {
     append(esc(BANNER), 'ascii');
     print([{ html: `<span class="dim">${esc(DATA.role)} · ${esc(DATA.focus)}</span>`, cls: 'blk' }]);
 });
-
+ /* UPDATE LATER */
 def('neofetch', 'system info', () => {
     const logo = [
         '        ▄▄▄▄▄        ',
